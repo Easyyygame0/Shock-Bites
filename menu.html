@@ -112,6 +112,16 @@ function loadCart() {
 function saveCart(cart) {
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
 }
+const ORDERS_STORAGE_KEY = "restaurantOrders";
+function pushRestaurantOrder(order) {
+  try {
+    const existing = JSON.parse(localStorage.getItem(ORDERS_STORAGE_KEY) || "[]");
+    const next = Array.isArray(existing) ? [...existing, order] : [order];
+    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(next));
+  } catch (error) {
+    console.error("Could not save restaurant order", error);
+  }
+}
 
 /* ── DATA ───────────────────────────────────────────── */
 const PRODUCTS = [
@@ -741,8 +751,8 @@ function CartDrawer({ cart, isOpen, onClose, onUpdateQty, onRemove, onCheckout }
 }
 
 /* ── CHECKOUT MODAL ───────────────────────────────────── */
-function CheckoutModal({ cart, isOpen, onClose }) {
-  const [form, setForm] = useState({ fullName: "", email: "", address: "", paymentMethod: "card", cardNumber: "", expiry: "", cvv: "" });
+function CheckoutModal({ cart, isOpen, onClose, onOrderPlaced }) {
+  const [form, setForm] = useState({ fullName: "", phone: "", paymentMethod: "card", cardNumber: "", expiry: "", cvv: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -752,8 +762,7 @@ function CheckoutModal({ cart, isOpen, onClose }) {
   const validate = () => {
     const e = {};
     if (!form.fullName || form.fullName.length < 2) e.fullName = "Full name is required";
-    if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) e.email = "Valid email is required";
-    if (!form.address || form.address.length < 10) e.address = "Full delivery address is required";
+    if (!form.phone || !/^[0-9+\-\s]{7,20}$/.test(form.phone)) e.phone = "Valid phone number is required";
     if (form.paymentMethod === "card") {
       if (!form.cardNumber || form.cardNumber.replace(/\s/g, "").length < 16) e.cardNumber = "Valid card number required";
       if (!form.expiry) e.expiry = "Expiry date required";
@@ -770,13 +779,31 @@ function CheckoutModal({ cart, isOpen, onClose }) {
     setLoading(true);
     await new Promise(r => setTimeout(r, 2000));
     setLoading(false);
+
+    const order = {
+      id: orderNum,
+      customer: {
+        name: form.fullName,
+        phone: form.phone,
+      },
+      items: cart.map(item => ({ name: item.product.name, qty: item.quantity, price: item.product.price, subtotal: item.product.price * item.quantity })),
+      total: subtotal,
+      payment: form.paymentMethod === "card" ? "Card" : form.paymentMethod === "gcash" ? "GCash" : "COD",
+      status: "Pending",
+      timestamp: new Date().toISOString(),
+    };
+
+    pushRestaurantOrder(order);
     setSuccess(true);
+    if (typeof onOrderPlaced === "function") {
+      onOrderPlaced(order);
+    }
   };
 
   const handleClose = () => {
     onClose();
     setSuccess(false);
-    setForm({ fullName: "", email: "", address: "", paymentMethod: "card", cardNumber: "", expiry: "", cvv: "" });
+    setForm({ fullName: "", phone: "", paymentMethod: "card", cardNumber: "", expiry: "", cvv: "" });
     setErrors({});
   };
 
@@ -848,8 +875,7 @@ function CheckoutModal({ cart, isOpen, onClose }) {
               {/* Form */}
               <form onSubmit={submit} className="p-6 space-y-4">
                 {field("fullName", "Full Name", "Juan Dela Cruz")}
-                {field("email", "Email", "juan@email.com", { type: "email" })}
-                {field("address", "Delivery Address", "123 Street, Barangay, City")}
+                {field("phone", "Phone", "+63 912 345 6789", { type: "tel" })}
 
                 {/* Payment method */}
                 <div>
@@ -936,6 +962,9 @@ function App() {
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
 
   const openCheckout = () => { setCartOpen(false); setCheckoutOpen(true); };
+  const handleOrderPlaced = order => {
+    // keep cart until checkout modal closes; order already saved to storage
+  };
 
   return (
     <>
@@ -954,6 +983,7 @@ function App() {
         cart={cart}
         isOpen={checkoutOpen}
         onClose={() => { setCheckoutOpen(false); setCart([]); }}
+        onOrderPlaced={handleOrderPlaced}
       />
     </>
   );
