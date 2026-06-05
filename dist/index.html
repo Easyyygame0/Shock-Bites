@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShockBites</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS (Play CDN - no build needed) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Bebas Neue', 'sans-serif'],
+            sans: ['Nunito', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              green:  '#1e5c2e',
+              light:  '#e8f0e1',
+              cream:  '#f0f4e8',
+              accent: '#d4f53c',
+              card:   '#ffffff',
+              muted:  '#5a7a4a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React + ReactDOM (CDN) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel (for JSX in the browser) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Nunito', sans-serif; background: #f0f4e8; color: #1a3a1a; }
+
+    /* Cart drawer slide-in */
+    .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .cart-overlay.open { opacity: 1; pointer-events: all; }
+    .cart-drawer { position: fixed; top: 0; right: 0; height: 100%; width: 100%; max-width: 420px; background: #fff; z-index: 101; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
+    .cart-drawer.open { transform: translateX(0); }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 760px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.25s; }
+    .modal-overlay.open .modal-box { transform: scale(1); }
+
+    /* Scrollable inner */
+    .modal-body { overflow-y: auto; flex: 1; }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+    /* Smooth scroll */
+    html { scroll-behavior: smooth; }
+
+    /* Number input without arrows */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    /* Focus ring */
+    input:focus, select:focus, textarea:focus { outline: 2px solid #1e5c2e; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo, useEffect } = React;
+
+/* ── DATA ───────────────────────────────────────────── */
+const PRODUCTS = [
+  { id: 1,  name: "Cheesy Togchomp Classic",   category: "House Specials", price: 109, description: "Simple yet flavorful burger made with a crispy togue-based patty, topped with melted cheese and savory sauces" },
+  { id: 2,  name: "Sproutarma",                category: "House Specials", price: 109, description: "A flavorful shawarma-style wrap made with seasoned togue, combined with fresh vegetables and savory sauces" },
+  { id: 3,  name: "Hot Sproutarma",            category: "House Specials", price: 119, description: "Spicy version of our classic Sproutarma with extra heat" },
+  { id: 4,  name: "Togueth Wrap (3pcs)",       category: "House Specials", price: 89,  description: "A healthy yet satisfying snack made with fresh togue, melted cheese, and a blend of flavorful sauces" },
+  { id: 5,  name: "Hot Togueth Wrap",          category: "House Specials", price: 99,  description: "Spicy version of our Togueth Wrap with extra kick" },
+  { id: 6,  name: "Togueth Wrap with Fries",   category: "House Specials", price: 109, description: "Togueth Wrap served with a side of golden fries" },
+  { id: 7,  name: "Cheesy Togchomp",           category: "Burgers",        price: 109, description: "Simple yet flavorful burger made with a crispy togue-based patty, topped with melted cheese and savory sauces" },
+  { id: 8,  name: "Cheesy Togchomp Deluxe",    category: "Burgers",        price: 129, description: "A flavorful crispy togue patty topped with melted cheese, fresh lettuce, tomato, cucumber, and savory sauces" },
+  { id: 9,  name: "Cheesy Togchomp Premium",   category: "Burgers",        price: 139, description: "A flavorful crispy togue patty topped with egg melted cheese, fresh lettuce, tomato, cucumber, and savory sauces" },
+  { id: 10, name: "Regular Fries",             category: "Appetizers",     price: 99,  description: "Golden fried potatoes with a light seasoning. Available in Cheese, Sour Cream, and Barbecue" },
+  { id: 11, name: "Kiwi Fruitee (16oz)",       category: "Fruitees",       price: 69,  description: "Refreshing kiwi-based tea drink — also available in 22oz for ₱79" },
+  { id: 12, name: "Strawberry Fruitee (16oz)", category: "Fruitees",       price: 69,  description: "Refreshing strawberry-based tea drink — also available in 22oz for ₱79" },
+  { id: 13, name: "Mango Fruitee (16oz)",      category: "Fruitees",       price: 69,  description: "Refreshing mango-based tea drink — also available in 22oz for ₱79" },
+  { id: 14, name: "Lychee Fruitee (16oz)",     category: "Fruitees",       price: 69,  description: "Refreshing lychee-based tea drink — also available in 22oz for ₱79" },
+];
+
+const CATEGORIES = ["All", "House Specials", "Burgers", "Appetizers", "Fruitees"];
+
+const GRADIENTS = [
+  "#1e5c2e,#2e7d42", "#1a6644,#2e8c5a", "#2a5c1a,#3e7a2a",
+  "#1c5a50,#2e7a6a", "#3a6a1a,#1e5c2e", "#163d1e,#2e6a3a",
+  "#2a5c30,#1e4a28", "#1e5c38,#2a7a50",
+];
+
+/* ── HELPERS ─────────────────────────────────────────── */
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth" });
+}
+
+function CardVisual({ product }) {
+  const [from, to] = GRADIENTS[product.id % GRADIENTS.length].split(",");
+  return (
+    <div
+      style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+      className="aspect-[4/3] w-full flex items-center justify-center relative overflow-hidden"
+    >
+      <div className="text-center text-white p-6 relative z-10">
+        <div className="font-display text-3xl tracking-wider leading-tight uppercase drop-shadow">{product.name}</div>
+        <div className="text-xs font-semibold opacity-70 uppercase tracking-widest mt-1">{product.category}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ── NAVBAR ──────────────────────────────────────────── */
+function Navbar({ cartCount, onCartOpen }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const links = [
+    { label: "About Us", id: "index.html" },
+    { label: "Menu", href: "menu.html" },
+    { label: "Togue-ther", href: "togue-ther.html" },
+    { label: "Contact", id: "contact" },
+  ];
+
+  return (
+    <header className="fixed top-0 w-full z-50 shadow-lg" style={{ background: "#1e5c2e" }}>
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Logo */}
+        <button onClick={() => scrollTo("hero")} className="flex items-center gap-3">
+         <img src="Images/Shockbites-logo.png" alt="ShockBites" className="h-28 w-auto" />
+          <span className="font-display text-2xl tracking-widest text-white hidden sm:block">SHOCKBITES</span>
+        </button>
+
+        {/* Desktop links */}
+        <nav className="hidden md:flex items-center gap-10">
+          {links.map(l => (
+            l.href ? (
+              <a key={l.label} href={l.href}
+                className="font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 transition-colors">
+                {l.label}
+              </a>
+            ) : (
+              <button key={l.id} onClick={() => scrollTo(l.id)}
+                className="font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 transition-colors">
+                {l.label}
+              </button>
+            )
+          ))}
+        </nav>
+
+        {/* Cart + mobile toggle */}
+        <div className="flex items-center gap-2">
+          <button onClick={onCartOpen}
+            className="relative w-11 h-11 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors"
+            aria-label="Open cart">
+            {/* Cart icon (SVG) */}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-black"
+                    style={{ background: "#d4f53c", color: "#1e5c2e" }}>
+                {cartCount}
+              </span>
+            )}
+          </button>
+
+          <button className="md:hidden w-11 h-11 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors"
+            onClick={() => setMobileOpen(o => !o)}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="md:hidden border-t border-white/20 py-4 px-4 space-y-2" style={{ background: "#1e5c2e" }}>
+          {links.map(l => (
+            l.href ? (
+              <a key={l.label} href={l.href}
+                className="block w-full text-left font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 py-2 transition-colors">
+                {l.label}
+              </a>
+            ) : (
+              <button key={l.id} onClick={() => { scrollTo(l.id); setMobileOpen(false); }}
+                className="block w-full text-left font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 py-2 transition-colors">
+                {l.label}
+              </button>
+            )
+          ))}
+        </div>
+      )}
+    </header>
+  );
+}
+
+/* ── HERO ────────────────────────────────────────────── */
+function Hero() {
+  return (
+    <section id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden" style={{ background: "#eef3e4" }}>
+      <div className="absolute top-0 right-0 h-full w-1/2 pointer-events-none overflow-hidden">
+  <svg viewBox="0 0 600 800" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
+    <path d="M80,0 C200,100 0,200 100,350 C200,500 50,600 150,800 L600,800 L600,0 Z" 
+      fill="#1e5c2e" opacity="0.85"/>
+    <path d="M120,0 C280,150 80,280 180,420 C280,560 100,650 200,800 L600,800 L600,0 Z" 
+      fill="#2e7d42" opacity="0.5"/>
+  </svg>
+</div>
+      <div className="max-w-7xl mx-auto px-4 w-full py-20 grid md:grid-cols-2 gap-12 items-center">
+        {/* Copy */}
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-sm font-bold mb-6"
+               style={{ background: "rgba(30,92,46,0.08)", borderColor: "rgba(30,92,46,0.2)", color: "#1e5c2e" }}>
+            ★ New Items Available Now
+          </div>
+          <h1 className="font-display text-6xl md:text-7xl lg:text-8xl tracking-wider leading-none uppercase mb-6" style={{ color: "#1e5c2e" }}>
+            Experience<br />
+            <span style={{ color: "#1a3a1a" }}>The Tasty,</span><br />
+            Amazing<br />
+            <span style={{ color: "#1a3a1a" }}>Variety.</span>
+          </h1>
+          <p className="text-lg font-semibold mb-8 max-w-md leading-relaxed" style={{ color: "#5a7a4a" }}>
+            Bold flavors, fresh ingredients, and unforgettable bites — made for people who refuse to settle for ordinary.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <button onClick={() => { window.location.href = "menu.html"; }}
+              className="font-display tracking-widest text-lg h-14 px-10 rounded-xl text-white shadow-lg hover:opacity-90 transition-all hover:scale-105"
+              style={{ background: "#1e5c2e" }}>
+              Explore Menu
+            </button>
+            <button onClick={() => scrollTo("about")}
+              className="font-display tracking-widest text-lg h-14 px-10 rounded-xl border-2 bg-transparent hover:text-white transition-all"
+              style={{ borderColor: "#1e5c2e", color: "#1e5c2e" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#1e5c2e"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#1e5c2e"; }}>
+              Our Story
+            </button>
+          </div>
+        </div>
+
+        {/* Food circles */}
+       <div className="relative hidden md:flex items-center justify-center h-[600px]">
+  {/* Big burger circle */}
+  <div className="absolute right-8 top-4 w-80 h-80 rounded-full border-4 border-white shadow-2xl overflow-hidden">
+    <img src="Images/Burger.png" alt="Burger" className="w-full h-full object-cover" />
+  </div>
+
+  {/* Shawarma circle */}
+  <div className="absolute left-8 bottom-8 w-64 h-64 rounded-full border-4 border-white shadow-xl overflow-hidden">
+    <img src="Images/Shawarma.png" alt="Shawarma" className="w-full h-full object-cover" />
+  </div>
+
+  {/* Togueth-wrap circle */}
+  <div className="absolute right-8 bottom-4 w-56 h-56 rounded-full border-4 border-white shadow-xl overflow-hidden">
+    <img src="Images/Togueth-wrap.png" alt="Wrap" className="w-full h-full object-cover" />
+  </div>
+
+  {/* Chevrons decoration */}
+  <div className="absolute bottom-16 left-12 flex gap-1 opacity-40">
+    {[0,1,2,3,4].map(i => (
+      <svg key={i} className="w-4 h-4" fill="none" stroke="#1e5c2e" strokeWidth="2.5" viewBox="0 0 24 24">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    ))}
+  </div>
+</div>
+      </div>
+    </section>
+  );
+}
+
+/* ── OFFERS STRIP ─────────────────────────────────────── */
+function OffersStrip() {
+  const items = [
+    { icon: "🕙", text: "Open Daily 10AM–10PM" },
+    { icon: "🛵", text: "Free Delivery Within 5km" },
+    { icon: "⭐", text: "4.9 Star Rating" },
+    { icon: "📞", text: "Order by Phone or Online" },
+  ];
+  return (
+    <section id="offers" className="py-4" style={{ background: "#1e5c2e" }}>
+      <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-center gap-8 md:gap-16 text-white">
+        {items.map(item => (
+          <div key={item.text} className="flex items-center gap-2 text-sm font-semibold">
+            <span>{item.icon}</span>{item.text}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ── MENU SECTION ─────────────────────────────────────── */
+function MenuSection({ cart, onAddToCart }) {
+  const [category, setCategory] = useState("All");
+  const [sort, setSort] = useState("default");
+
+  const products = useMemo(() => {
+    let r = [...PRODUCTS];
+    if (category !== "All") r = r.filter(p => p.category === category);
+    if (sort === "price-asc")  r.sort((a, b) => a.price - b.price);
+    if (sort === "price-desc") r.sort((a, b) => b.price - a.price);
+    if (sort === "name-asc")   r.sort((a, b) => a.name.localeCompare(b.name));
+    return r;
+  }, [category, sort]);
+
+  return (
+    <section id="menu" className="py-24" style={{ background: "#f0f4e8" }}>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="font-display text-6xl md:text-7xl tracking-wider uppercase mb-2" style={{ color: "#1e5c2e" }}>Our Menu</h2>
+          <p className="text-lg font-semibold" style={{ color: "#5a7a4a" }}>Fresh. Bold. Unforgettable.</p>
+        </div>
+
+        {/* Filter + Sort */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-10">
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map(cat => (
+              <button key={cat} onClick={() => setCategory(cat)}
+                className="px-5 py-2 rounded-full text-sm font-bold transition-all border-2"
+                style={category === cat
+                  ? { background: "#1e5c2e", color: "#fff", borderColor: "#1e5c2e" }
+                  : { background: "#fff", color: "#1e5c2e", borderColor: "rgba(30,92,46,0.25)" }
+                }>
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          <select value={sort} onChange={e => setSort(e.target.value)}
+            className="px-4 py-2 rounded-xl border-2 font-semibold text-sm bg-white"
+            style={{ borderColor: "rgba(30,92,46,0.3)", color: "#1e5c2e" }}>
+            <option value="default">Featured</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name-asc">Name: A–Z</option>
+          </select>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {products.map(product => {
+            const inCart = cart.some(i => i.product.id === product.id);
+            return (
+              <div key={product.id}
+                className="bg-white rounded-2xl overflow-hidden shadow-md transition-all border border-gray-100"
+                style={{ transition: "transform 0.2s, box-shadow 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 20px 40px rgba(30,92,46,0.15)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}>
+                <CardVisual product={product} />
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-bold text-base leading-snug" style={{ color: "#1a3a1a" }}>{product.name}</h4>
+                    <span className="font-black text-lg ml-2 shrink-0" style={{ color: "#1e5c2e" }}>₱{product.price}</span>
+                  </div>
+                  <p className="text-sm mb-4 leading-relaxed" style={{ color: "#5a7a4a" }}>{product.description}</p>
+                  <button
+                    onClick={() => onAddToCart(product)}
+                    className="w-full py-2 rounded-xl font-bold text-sm transition-all"
+                    style={inCart
+                      ? { background: "rgba(30,92,46,0.1)", color: "#1e5c2e", border: "2px solid #1e5c2e" }
+                      : { background: "#1e5c2e", color: "#fff", border: "2px solid #1e5c2e" }
+                    }>
+                    {inCart ? "✓ Added to Order" : "Add to Order"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── ABOUT SECTION ────────────────────────────────────── */
+function About() {
+  return (
+    <section id="about" className="py-24 text-white relative overflow-hidden" style={{ background: "#1e5c2e" }}>
+      <div className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 pointer-events-none"
+           style={{ background: "#fff", transform: "translate(40%, -40%)" }} />
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 text-sm font-bold mb-6"
+                 style={{ background: "rgba(255,255,255,0.1)", color: "#d4f53c" }}>
+              ⚡ Our Story
+            </div>
+            <h2 className="font-display text-6xl md:text-7xl tracking-wider uppercase mb-8 leading-none">
+              Born From<br />Bold Flavor.
+            </h2>
+            <div className="space-y-5 text-white/80 font-semibold text-lg leading-relaxed">
+              <p>Shock Bites is a snack-focused food business that delivers bold,
+                innovative flavors designed to surprise consumers with every bite.
+                The company focuses on offering unique flavors through the
+                combination of traditional and innovative tastes, textures, and
+                visual elements. It targets students and young professionals who
+                seek affordable, convenient, and exciting food options beyond
+                typical street snacks. Shock Bites intends to develop strong
+                customer appeal and brand identity.
+              "</p>
+              <p>In order to achieve growth, this company plans on employing
+                certain marketing initiatives, including customer engagement
+                activities online and elsewhere. It hopes to build a reputation that
+                attracts returning customers and loyal customers. Growth and
+                sustainability are possible through constant product innovations,
+                solid branding efforts, and satisfied customers.
+              </p>
+            </div>
+            <p className="font-display text-2xl tracking-wider uppercase mt-8" style={{ color: "#d4f53c" }}>
+              Never settle for ordinary.
+            </p>
+          </div>
+          <video 
+  className="w-full rounded-2xl" 
+  controls 
+  autoPlay 
+  muted 
+  loop
+>
+  <source src="SHOCKBITES.mp4" type="video/mp4" />
+</video>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── CONTACT ─────────────────────────────────────────── */
+function Contact() {
+  const info = [
+    { icon: "📍", title: "Location", detail: <a href="https://maps.google.com/?q=72+G.+Marcelo+Street+Barangay+Maysan+Valenzuela+City" target="_blank" style={{ color: "#1e5c2e" }} className="hover:underline">72 G. Marcelo Street, Barangay Maysan, Valenzuela City</a> },
+    { icon: "🕙", title: "Hours",    detail: "Mon–Sun: 11AM – 9PM" },
+    { icon: "📞", title: "Phone",    detail: "+63 9482820392" },
+  ];
+  return (
+    <section id="contact" className="py-24" style={{ background: "#e8f0e1" }}>
+  <div className="max-w-3xl mx-auto px-4 text-center">
+    <h2 className="font-display text-6xl tracking-wider uppercase mb-4" style={{ color: "#1e5c2e" }}>Find Us</h2>
+    <p className="text-lg font-semibold mb-12" style={{ color: "#5a7a4a" }}>Come in, or order online — we're always ready.</p>
+    <div className="grid sm:grid-cols-3 gap-6 mb-12">
+      {info.map(item => (
+        <div key={item.title} className="bg-white rounded-3xl p-8 shadow-md border-2 hover:shadow-xl transition-shadow" style={{ borderColor: "#d4f53c" }}>
+          <div className="text-4xl mb-4">{item.icon}</div>
+          <div className="font-display text-xl tracking-wider mb-2" style={{ color: "#1e5c2e" }}>{item.title}</div>
+          <div className="text-sm font-semibold" style={{ color: "#5a7a4a" }}>{item.detail}</div>
+        </div>
+      ))}
+    </div>
+    <div className="bg-white rounded-3xl p-8 shadow-md border-2" style={{ borderColor: "#d4f53c" }}>
+      <h3 className="font-display text-3xl tracking-wider mb-6" style={{ color: "#1e5c2e" }}>FOLLOW US</h3>
+      <div className="flex justify-center gap-4 flex-wrap">
+        <a href="https://www.tiktok.com/@shockbites7" target="_blank" className="flex items-center gap-3 rounded-2xl px-6 py-4 transition-all hover:scale-105" style={{ background: "#e8f0e1" }}>
+          <span className="text-3xl">🎵</span>
+          <div className="text-left">
+            <div className="font-display tracking-wider text-sm" style={{ color: "#1e5c2e" }}>TIKTOK</div>
+            <div className="text-xs font-semibold" style={{ color: "#5a7a4a" }}>@shockbites7</div>
+          </div>
+        </a>
+        <a href="https://www.instagram.com/ShockBites11" target="_blank" className="flex items-center gap-3 rounded-2xl px-6 py-4 transition-all hover:scale-105" style={{ background: "#e8f0e1" }}>
+          <span className="text-3xl">📸</span>
+          <div className="text-left">
+            <div className="font-display tracking-wider text-sm" style={{ color: "#1e5c2e" }}>INSTAGRAM</div>
+            <div className="text-xs font-semibold" style={{ color: "#5a7a4a" }}>ShockBites11</div>
+          </div>
+        </a>
+        <a href="https://www.facebook.com/ShockBites" target="_blank" className="flex items-center gap-3 rounded-2xl px-6 py-4 transition-all hover:scale-105" style={{ background: "#e8f0e1" }}>
+          <span className="text-3xl">👥</span>
+          <div className="text-left">
+            <div className="font-display tracking-wider text-sm" style={{ color: "#1e5c2e" }}>FACEBOOK</div>
+            <div className="text-xs font-semibold" style={{ color: "#5a7a4a" }}>ShockBites</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+  );
+}
+
+/* ── FOOTER ──────────────────────────────────────────── */
+function Footer() {
+  return (
+    <footer style={{ background: "#1e5c2e" }}>
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <img src="images/Shockbites-logo.png" alt="ShockBites" className="h-12 w-auto" />
+              <span className="font-display text-2xl tracking-widest text-white">SHOCKBITES</span>
+            </div>
+            <p className="text-white/60 text-sm">Bold flavors, fresh ingredients, and unforgettable bites.</p>
+          </div>
+          <div>
+            <h4 className="font-display text-lg tracking-wider text-white mb-4">QUICK LINKS</h4>
+            <div className="flex flex-col gap-2">
+              <a href="index.html" className="text-white/60 text-sm hover:text-white transition-colors">Home</a>
+              <a href="index.html#about" className="text-white/60 text-sm hover:text-white transition-colors">About Us</a>
+              <a href="menu.html" className="text-white/60 text-sm hover:text-white transition-colors">Menu</a>
+              <a href="index.html#contact" className="text-white/60 text-sm hover:text-white transition-colors">Contact</a>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-display text-lg tracking-wider text-white mb-4">FOLLOW US</h4>
+            <div className="flex flex-col gap-2">
+              <a href="https://www.tiktok.com/@shockbites7" target="_blank" className="text-white/60 text-sm hover:text-white transition-colors">🎵 TikTok — @shockbites7</a>
+              <a href="https://www.instagram.com/ShockBites11" target="_blank" className="text-white/60 text-sm hover:text-white transition-colors">📸 Instagram — ShockBites11</a>
+              <a href="https://www.facebook.com/ShockBites" target="_blank" className="text-white/60 text-sm hover:text-white transition-colors">👥 Facebook — ShockBites</a>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-white/20 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-white/40 text-sm">© 2025 ShockBites. All rights reserved.</p>
+          <p className="text-white/40 text-sm"><a href="https://maps.google.com/?q=72+G.+Marcelo+Street+Barangay+Maysan+Valenzuela+City" target="_blank" className="hover:underline text-white/40">72 G. Marcelo Street, Barangay Maysan, Valenzuela City</a> | Mon–Sun: 11AM–9PM</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ── CART DRAWER ──────────────────────────────────────── */
+function CartDrawer({ cart, isOpen, onClose, onUpdateQty, onRemove, onCheckout }) {
+  const subtotal = cart.reduce((s, i) => s + i.product.price * i.quantity, 0);
+
+  return (
+    <>
+      <div className={`cart-overlay ${isOpen ? "open" : ""}`} onClick={onClose} />
+      <div className={`cart-drawer ${isOpen ? "open" : ""}`}>
+        {/* Header */}
+        <div className="p-6 flex items-center justify-between flex-shrink-0" style={{ background: "#1e5c2e" }}>
+          <span className="font-display text-2xl tracking-widest text-white">YOUR ORDER</span>
+          <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Items */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {cart.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full gap-4 py-20" style={{ color: "#5a7a4a" }}>
+              <svg className="w-16 h-16 opacity-20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+              </svg>
+              <p className="font-display text-xl tracking-wider text-center" style={{ color: "rgba(30,92,46,0.35)" }}>Your bag is shockingly empty</p>
+              <p className="text-sm text-center">Add some items from our menu!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {cart.map(item => {
+                const [from, to] = GRADIENTS[item.product.id % GRADIENTS.length].split(",");
+                return (
+                  <div key={item.product.id} className="flex gap-4 items-center p-4 rounded-xl border"
+                       style={{ background: "#f0f4e8", borderColor: "rgba(30,92,46,0.15)" }}>
+                    <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                         style={{ background: `linear-gradient(135deg,${from},${to})` }}>
+                      <span className="font-display text-white text-xs text-center leading-tight px-1">
+                        {item.product.name.split(" ")[0]}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-sm leading-tight" style={{ color: "#1a3a1a" }}>{item.product.name}</h4>
+                      <p className="font-bold text-sm" style={{ color: "#1e5c2e" }}>₱{item.product.price}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <button onClick={() => onUpdateQty(item.product.id, -1)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white transition-opacity hover:opacity-80"
+                          style={{ background: "#1e5c2e" }}>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                        <span className="w-6 text-center text-sm font-black">{item.quantity}</span>
+                        <button onClick={() => onUpdateQty(item.product.id, 1)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-white transition-opacity hover:opacity-80"
+                          style={{ background: "#1e5c2e" }}>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="text-right flex flex-col items-end gap-2">
+                      <span className="font-black" style={{ color: "#1a3a1a" }}>₱{item.product.price * item.quantity}</span>
+                      <button onClick={() => onRemove(item.product.id)}
+                        className="text-red-400 hover:text-red-600 transition-colors">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        {cart.length > 0 && (
+          <div className="p-6 border-t flex-shrink-0 space-y-4" style={{ background: "#f0f4e8", borderColor: "rgba(30,92,46,0.15)" }}>
+            <div className="flex justify-between items-center">
+              <span className="font-display text-xl tracking-wider" style={{ color: "#1a3a1a" }}>SUBTOTAL</span>
+              <span className="font-black text-2xl" style={{ color: "#1e5c2e" }}>₱{subtotal}</span>
+            </div>
+            <button onClick={onCheckout}
+              className="w-full py-4 rounded-xl font-display tracking-widest text-lg text-white shadow-md hover:opacity-90 transition-all"
+              style={{ background: "#1e5c2e" }}>
+              PROCEED TO CHECKOUT
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ── CHECKOUT MODAL ───────────────────────────────────── */
+function CheckoutModal({ cart, isOpen, onClose, onOrderPlaced }) {
+  const [form, setForm] = useState({ fullName: "", email: "", address: "", paymentMethod: "card", cardNumber: "", expiry: "", cvv: "" });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const orderNum = "SB-" + Math.floor(100000 + Math.random() * 900000);
+  const subtotal = cart.reduce((s, i) => s + i.product.price * i.quantity, 0);
+
+  const validate = () => {
+    const e = {};
+    if (!form.fullName || form.fullName.length < 2) e.fullName = "Full name is required";
+    if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) e.email = "Valid email is required";
+    if (!form.address || form.address.length < 10) e.address = "Full delivery address is required";
+    if (form.paymentMethod === "card") {
+      if (!form.cardNumber || form.cardNumber.replace(/\s/g, "").length < 16) e.cardNumber = "Valid card number required";
+      if (!form.expiry) e.expiry = "Expiry date required";
+      if (!form.cvv || form.cvv.length < 3) e.cvv = "CVV required";
+    }
+    return e;
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    setErrors({});
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 2000));
+    setLoading(false);
+
+    const order = {
+      id: orderNum,
+      customer: form.fullName,
+      email: form.email,
+      address: form.address,
+      paymentMethod: form.paymentMethod,
+      items: cart.map(item => ({ name: item.product.name, quantity: item.quantity, price: item.product.price })),
+      total: subtotal,
+      orderedAt: new Date().toISOString(),
+    };
+
+    setSuccess(true);
+    if (!orderPlaced) {
+      setOrderPlaced(true);
+      onOrderPlaced(order);
+    }
+  };
+
+  const handleClose = () => {
+    onClose();
+    setSuccess(false);
+    setOrderPlaced(false);
+    setForm({ fullName: "", email: "", address: "", paymentMethod: "card", cardNumber: "", expiry: "", cvv: "" });
+    setErrors({});
+  };
+
+  const field = (name, label, placeholder, extra = {}) => (
+    <div>
+      <label className="block text-sm font-bold mb-1" style={{ color: "#1a3a1a" }}>{label}</label>
+      <input name={name} value={form[name]} placeholder={placeholder}
+        onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))}
+        className="w-full px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-colors"
+        style={{ borderColor: errors[name] ? "#dc2626" : "rgba(30,92,46,0.25)", color: "#1a3a1a" }}
+        {...extra}
+      />
+      {errors[name] && <p className="text-red-500 text-xs mt-1 font-semibold">{errors[name]}</p>}
+    </div>
+  );
+
+  return (
+    <div className={`modal-overlay ${isOpen ? "open" : ""}`} onClick={e => e.target === e.currentTarget && handleClose()}>
+      <div className="modal-box">
+        {/* Header */}
+        <div className="p-6 flex items-center justify-between flex-shrink-0" style={{ background: "#1e5c2e" }}>
+          <span className="font-display text-2xl tracking-widest text-white">{success ? "ORDER PLACED!" : "CHECKOUT"}</span>
+          <button onClick={handleClose} className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        {success ? (
+          /* Success screen */
+          <div className="p-12 flex flex-col items-center justify-center text-center gap-5">
+            <div className="w-24 h-24 rounded-full flex items-center justify-center text-white text-4xl shadow-lg"
+                 style={{ background: "#1e5c2e" }}>✓</div>
+            <h2 className="font-display text-4xl tracking-wider" style={{ color: "#1e5c2e" }}>ORDER CONFIRMED!</h2>
+            <p className="text-lg font-semibold" style={{ color: "#5a7a4a" }}>Your food is being prepared with love.</p>
+            <div className="px-8 py-4 rounded-xl border" style={{ background: "#eef3e4", borderColor: "rgba(30,92,46,0.2)" }}>
+              <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#5a7a4a" }}>Order Number</p>
+              <p className="font-display text-3xl tracking-wider" style={{ color: "#1e5c2e" }}>{orderNum}</p>
+            </div>
+            <p className="text-sm" style={{ color: "#5a7a4a" }}>Estimated delivery: 30–45 minutes</p>
+            <button onClick={handleClose}
+              className="font-display tracking-widest text-lg px-12 py-4 rounded-xl text-white hover:opacity-90 transition-all"
+              style={{ background: "#1e5c2e" }}>
+              CONTINUE SHOPPING
+            </button>
+          </div>
+        ) : (
+          /* Checkout form */
+          <div className="modal-body">
+            <div className="grid md:grid-cols-2">
+              {/* Order summary */}
+              <div className="p-6 border-r" style={{ background: "#f0f4e8", borderColor: "rgba(30,92,46,0.15)" }}>
+                <h3 className="font-display text-xl tracking-wider uppercase mb-4" style={{ color: "#1e5c2e" }}>Your Order</h3>
+                <div className="space-y-3 mb-6">
+                  {cart.map(item => (
+                    <div key={item.product.id} className="flex justify-between items-center text-sm">
+                      <span className="font-semibold" style={{ color: "#1a3a1a" }}>{item.product.name} <span style={{ color: "#5a7a4a" }}>×{item.quantity}</span></span>
+                      <span className="font-bold" style={{ color: "#1e5c2e" }}>₱{item.product.price * item.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t pt-4 flex justify-between items-center" style={{ borderColor: "rgba(30,92,46,0.2)" }}>
+                  <span className="font-display text-xl tracking-wider" style={{ color: "#1e5c2e" }}>TOTAL</span>
+                  <span className="font-black text-2xl" style={{ color: "#1e5c2e" }}>₱{subtotal}</span>
+                </div>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={submit} className="p-6 space-y-4">
+                {field("fullName", "Full Name", "Juan Dela Cruz")}
+                {field("email", "Email", "juan@email.com", { type: "email" })}
+                {field("address", "Delivery Address", "123 Street, Barangay, City")}
+
+                {/* Payment method */}
+                <div>
+                  <label className="block text-sm font-bold mb-2" style={{ color: "#1a3a1a" }}>Payment Method</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[["card","Credit Card"],["gcash","GCash"],["cod","COD"]].map(([val, label]) => (
+                      <button key={val} type="button"
+                        onClick={() => setForm(f => ({ ...f, paymentMethod: val }))}
+                        className="py-2 px-3 rounded-xl border-2 text-xs font-bold transition-all"
+                        style={form.paymentMethod === val
+                          ? { borderColor: "#1e5c2e", background: "rgba(30,92,46,0.1)", color: "#1e5c2e" }
+                          : { borderColor: "rgba(30,92,46,0.2)", color: "#5a7a4a" }
+                        }>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card fields */}
+                {form.paymentMethod === "card" && (
+                  <div className="space-y-3">
+                    {field("cardNumber", "Card Number", "1234 5678 9012 3456", { maxLength: 19 })}
+                    <div className="grid grid-cols-2 gap-3">
+                      {field("expiry", "Expiry", "MM/YY", { maxLength: 5 })}
+                      {field("cvv", "CVV", "123", { maxLength: 4 })}
+                    </div>
+                  </div>
+                )}
+
+                {/* GCash */}
+                {form.paymentMethod === "gcash" && (
+                  <div className="border-2 border-dashed rounded-xl p-6 text-center"
+                       style={{ borderColor: "rgba(30,92,46,0.35)", background: "rgba(30,92,46,0.05)" }}>
+                    <div className="w-28 h-28 border rounded-xl mx-auto mb-3 flex items-center justify-center"
+                         style={{ background: "rgba(30,92,46,0.08)", borderColor: "rgba(30,92,46,0.2)" }}>
+                      <span className="text-xs font-bold" style={{ color: "rgba(30,92,46,0.4)" }}>QR CODE</span>
+                    </div>
+                    <p className="font-semibold text-sm" style={{ color: "#1e5c2e" }}>Scan with GCash to pay</p>
+                    <p className="text-xs mt-1" style={{ color: "#5a7a4a" }}>Account: ShockBites Official</p>
+                  </div>
+                )}
+
+                <button type="submit" disabled={loading}
+                  className="w-full py-4 rounded-xl font-display tracking-widest text-lg text-white transition-all flex items-center justify-center gap-3"
+                  style={{ background: "#1e5c2e", opacity: loading ? 0.8 : 1 }}>
+                  {loading ? (
+                    <><div className="spinner" />Placing Order...</>
+                  ) : "PLACE ORDER"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── APP ─────────────────────────────────────────────── */
+function App() {
+  const [cart, setCart] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [orders, setOrders] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("shockbites_orders") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("shockbites_orders", JSON.stringify(orders));
+  }, [orders]);
+
+  const addToCart = product => {
+    setCart(prev => {
+      const existing = prev.find(i => i.product.id === product.id);
+      if (existing) return prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+      return [...prev, { product, quantity: 1 }];
+    });
+  };
+
+  const handleOrderPlaced = order => {
+    setOrders(prev => [...prev, order]);
+  };
+
+  const updateQty = (id, delta) => {
+    setCart(prev => prev.map(i => i.product.id === id ? { ...i, quantity: i.quantity + delta } : i).filter(i => i.quantity > 0));
+  };
+
+  const remove = id => setCart(prev => prev.filter(i => i.product.id !== id));
+
+  const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
+
+  const openCheckout = () => { setCartOpen(false); setCheckoutOpen(true); };
+
+  return (
+    <>
+      <Navbar cartCount={cartCount} onCartOpen={() => setCartOpen(true)} />
+      <Hero />
+      <About />
+      <Contact />
+      <Footer />
+      <CartDrawer
+        cart={cart}
+        isOpen={cartOpen}
+        onClose={() => setCartOpen(false)}
+        onUpdateQty={updateQty}
+        onRemove={remove}
+        onCheckout={openCheckout}
+      />
+      <CheckoutModal
+        cart={cart}
+        isOpen={checkoutOpen}
+        onClose={() => { setCheckoutOpen(false); setCart([]); }}
+        onOrderPlaced={handleOrderPlaced}
+      />
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+</body>
+</html>
