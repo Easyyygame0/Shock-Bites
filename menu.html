@@ -79,28 +79,60 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useMemo } = React;
+const { useState, useMemo, useEffect } = React;
+
+const CART_STORAGE_KEY = "shockbites-cart";
+function normalizeCartItems(data) {
+  if (!Array.isArray(data)) return [];
+  return data.map(item => {
+    if (!item || typeof item !== "object") return null;
+    if (item.product && item.product.id) return item;
+    if (item.id) {
+      return {
+        product: {
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          category: item.category,
+          image: item.image,
+          selectedVariants: item.selectedVariants,
+        },
+        quantity: item.quantity || 1,
+      };
+    }
+    return null;
+  }).filter(Boolean);
+}
+function loadCart() {
+  const stored = localStorage.getItem(CART_STORAGE_KEY);
+  if (!stored) return [];
+  try { return normalizeCartItems(JSON.parse(stored)); } catch { return []; }
+}
+function saveCart(cart) {
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+}
 
 /* ── DATA ───────────────────────────────────────────── */
 const PRODUCTS = [
-  { id: 1,  name: "Cheesy Togchomp Classic",   category: "House Specials", price: 109, image: "images/Cheesy-togchomp.png", description: "Simple yet flavorful burger made with a crispy togue-based patty, topped with melted cheese and savory sauces" },
-  { id: 2,  name: "Sproutarma",                category: "House Specials", price: 109, image: "images/Sproutarma.png", description: "A flavorful shawarma-style wrap made with seasoned togue, combined with fresh vegetables and savory sauces" },
-  { id: 3,  name: "Hot Sproutarma",            category: "House Specials", price: 119, image: "images/Sproutarma.png", description: "Spicy version of our classic Sproutarma with extra heat" },
-  { id: 4,  name: "Togueth Wrap (3pcs)",       category: "House Specials", price: 89,  image: "images/Togueth-wrap.png", description: "A healthy yet satisfying snack made with fresh togue, melted cheese, and a blend of flavorful sauces" },
-  { id: 5,  name: "Hot Togueth Wrap",          category: "House Specials", price: 99,  image: "images/Togueth-wrap.png", description: "Spicy version of our Togueth Wrap with extra kick" },
-  { id: 6,  name: "Togueth Wrap with Fries",   category: "House Specials", price: 109, image: "images/Togueth-wrap-with-fries.png", description: "Togueth Wrap served with a side of golden fries" },
-  { id: 7,  name: "Cheesy Togchomp",           category: "Burgers",        price: 109, image: "images/Cheesy-togchomp.png", description: "Simple yet flavorful burger made with a crispy togue-based patty, topped with melted cheese and savory sauces" },
-  { id: 8,  name: "Cheesy Togchomp Deluxe",    category: "Burgers",        price: 129, image: "images/Cheesy-togchomp-deluxe.png", description: "A flavorful crispy togue patty topped with melted cheese, fresh lettuce, tomato, cucumber, and savory sauces" },
-  { id: 9,  name: "Cheesy Togchomp Premium",   category: "Burgers",        price: 139, image: "images/Cheesy-togchomp-premium.png", description: "A flavorful crispy togue patty topped with egg melted cheese, fresh lettuce, tomato, cucumber, and savory sauces" },
-  { id: 10, name: "Regular Fries",             category: "Appetizers",     price: 99,  image: "images/Fries.png", description: "Golden fried potatoes with a light seasoning.",
+  { id: 1,  name: "Cheesy Togchomp Classic",   category: "House Specials", price: 109, image: "Images/Cheesy-togchomp.png", description: "Simple yet flavorful burger made with a crispy togue-based patty, topped with melted cheese and savory sauces" },
+  { id: 2,  name: "Sproutarma",                category: "House Specials", price: 109, image: "Images/Sproutarma.png", description: "A flavorful shawarma-style wrap made with seasoned togue, combined with fresh vegetables and savory sauces" },
+  { id: 3,  name: "Hot Sproutarma",            category: "House Specials", price: 119, image: "Images/Sproutarma.png", description: "Spicy version of our classic Sproutarma with extra heat" },
+  { id: 4,  name: "Togueth Wrap (3pcs)",       category: "House Specials", price: 89,  image: "Images/Togueth-wrap.png", description: "A healthy yet satisfying snack made with fresh togue, melted cheese, and a blend of flavorful sauces" },
+  { id: 5,  name: "Hot Togueth Wrap",          category: "House Specials", price: 99,  image: "Images/Togueth-wrap.png", description: "Spicy version of our Togueth Wrap with extra kick" },
+  { id: 6,  name: "Togueth Wrap with Fries",   category: "House Specials", price: 109, image: "Images/Togueth-wrap-with-fries.png", description: "Togueth Wrap served with a side of golden fries" },
+  { id: 7,  name: "Cheesy Togchomp",           category: "Burgers",        price: 109, image: "Images/Cheesy-togchomp.png", description: "Simple yet flavorful burger made with a crispy togue-based patty, topped with melted cheese and savory sauces" },
+  { id: 8,  name: "Cheesy Togchomp Deluxe",    category: "Burgers",        price: 129, image: "Images/Cheesy-togchomp-deluxe.png", description: "A flavorful crispy togue patty topped with melted cheese, fresh lettuce, tomato, cucumber, and savory sauces" },
+  { id: 9,  name: "Cheesy Togchomp Premium",   category: "Burgers",        price: 139, image: "Images/Cheesy-togchomp-premium.png", description: "A flavorful crispy togue patty topped with egg melted cheese, fresh lettuce, tomato, cucumber, and savory sauces" },
+  { id: 10, name: "Regular Fries",             category: "Appetizers",     price: 99,  image: "Images/Fries.png", description: "Golden fried potatoes with a light seasoning.",
     variants: [{ label: "Flavor", options: ["Cheese", "Sour Cream", "Barbecue"] }] },
-  { id: 11, name: "Kiwi Fruitee",              category: "Fruitees",       price: 69,  image: "images/Fruitees.png", description: "Refreshing kiwi-based tea drink.",
+  { id: 11, name: "Kiwi Fruitee",              category: "Fruitees",       price: 69,  image: "Images/Fruitees.png", description: "Refreshing kiwi-based tea drink.",
     variants: [{ label: "Size", options: [{ name: "16oz", price: 69 }, { name: "22oz", price: 79 }] }] },
-  { id: 12, name: "Strawberry Fruitee",        category: "Fruitees",       price: 69,  image: "images/Fruitees.png", description: "Refreshing strawberry-based tea drink.",
+  { id: 12, name: "Strawberry Fruitee",        category: "Fruitees",       price: 69,  image: "Images/Fruitees.png", description: "Refreshing strawberry-based tea drink.",
     variants: [{ label: "Size", options: [{ name: "16oz", price: 69 }, { name: "22oz", price: 79 }] }] },
-  { id: 13, name: "Mango Fruitee",             category: "Fruitees",       price: 69,  image: "images/Fruitees.png", description: "Refreshing mango-based tea drink.",
+  { id: 13, name: "Mango Fruitee",             category: "Fruitees",       price: 69,  image: "Images/Fruitees.png", description: "Refreshing mango-based tea drink.",
     variants: [{ label: "Size", options: [{ name: "16oz", price: 69 }, { name: "22oz", price: 79 }] }] },
-  { id: 14, name: "Lychee Fruitee",            category: "Fruitees",       price: 69,  image: "images/Fruitees.png", description: "Refreshing lychee-based tea drink.",
+  { id: 14, name: "Lychee Fruitee",            category: "Fruitees",       price: 69,  image: "Images/Fruitees.png", description: "Refreshing lychee-based tea drink.",
     variants: [{ label: "Size", options: [{ name: "16oz", price: 69 }, { name: "22oz", price: 79 }] }] },
 ];
 
@@ -145,11 +177,10 @@ function CardVisual({ product }) {
 function Navbar({ cartCount, onCartOpen }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = [
-    { label: "Home", href: "index.html" },
     { label: "About Us", id: "about" },
-    { label: "Menu", id: "menu" },
-    { label: "Offers", id: "offers" },
-    { label: "Contact", href: "index.html", id: "contact" },
+    { label: "Menu", href: "menu.html" },
+    { label: "Togue-ther", href: "togue-ther.html" },
+    { label: "Contact", id: "contact" },
   ];
 
   return (
@@ -420,23 +451,23 @@ function MenuSection({ cart, onAddToCart }) {
                       <span className="font-black text-lg ml-2 shrink-0" style={{ color: "#1e5c2e" }}>₱{product.price}</span>
                     </div>
                     <p className="text-sm mb-4 leading-relaxed" style={{ color: "#5a7a4a" }}>{product.description}</p>
-                    <button className="mt-auto"
-  onClick={() => {
-    if (product.variants) {
-      setVariantModal(product);
-      setSelectedVariants({});
-    } else {
-      onAddToCart(product);
-    }
-  }}
-  className="w-full py-2 rounded-xl font-bold text-sm transition-all"
-  style={inCart
-    ? { background: "rgba(30,92,46,0.1)", color: "#1e5c2e", border: "2px solid #1e5c2e" }
-    : { background: "#1e5c2e", color: "#fff", border: "2px solid #1e5c2e" }
-  }
->
-  {inCart ? "✓ Added to Order" : "Add to Order"}
-</button>
+                    <button
+                      className="mt-auto w-full py-2 rounded-xl font-bold text-sm transition-all"
+                      onClick={() => {
+                        if (product.variants) {
+                          setVariantModal(product);
+                          setSelectedVariants({});
+                        } else {
+                          onAddToCart(product);
+                        }
+                      }}
+                      style={inCart
+                        ? { background: "rgba(30,92,46,0.1)", color: "#1e5c2e", border: "2px solid #1e5c2e" }
+                        : { background: "#1e5c2e", color: "#fff", border: "2px solid #1e5c2e" }
+                      }
+                    >
+                      {inCart ? "✓ Added to Order" : "Add to Order"}
+                    </button>
                   </div>
                 </div>
               );
@@ -645,12 +676,18 @@ function CartDrawer({ cart, isOpen, onClose, onUpdateQty, onRemove, onCheckout }
                 return (
                   <div key={item.product.id} className="flex gap-4 items-center p-4 rounded-xl border"
                        style={{ background: "#f0f4e8", borderColor: "rgba(30,92,46,0.15)" }}>
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-                         style={{ background: `linear-gradient(135deg,${from},${to})` }}>
-                      <span className="font-display text-white text-xs text-center leading-tight px-1">
-                        {item.product.name.split(" ")[0]}
-                      </span>
-                    </div>
+                    {item.product.image ? (
+                      <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-white shadow-sm">
+                        <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                           style={{ background: `linear-gradient(135deg,${from},${to})` }}>
+                        <span className="font-display text-white text-xs text-center leading-tight px-1">
+                          {item.product.name.split(" ")[0]}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-sm leading-tight" style={{ color: "#1a3a1a" }}>{item.product.name}</h4>
                       <p className="font-bold text-sm" style={{ color: "#1e5c2e" }}>₱{item.product.price}</p>
@@ -874,9 +911,13 @@ function CheckoutModal({ cart, isOpen, onClose }) {
 
 /* ── APP ─────────────────────────────────────────────── */
 function App() {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => loadCart());
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  useEffect(() => {
+    saveCart(cart);
+  }, [cart]);
 
   const addToCart = product => {
     setCart(prev => {

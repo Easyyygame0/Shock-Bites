@@ -134,7 +134,7 @@ function Navbar({ cartCount, onCartOpen }) {
   const links = [
     { label: "About Us", id: "about" },
     { label: "Menu", href: "menu.html" },
-    { label: "Offers", id: "offers" },
+    { label: "Togue-ther", href: "togue-ther.html" },
     { label: "Contact", id: "contact" },
   ];
 
@@ -449,9 +449,9 @@ function About() {
 /* ── CONTACT ─────────────────────────────────────────── */
 function Contact() {
   const info = [
-    { icon: "📍", title: "Location", detail: "123 Shock Street, Manila, PH" },
-    { icon: "🕙", title: "Hours",    detail: "Mon–Sun: 10AM – 10PM" },
-    { icon: "📞", title: "Phone",    detail: "+63 912 345 6789" },
+    { icon: "📍", title: "Location", detail: <a href="https://maps.google.com/?q=72+G.+Marcelo+Street+Barangay+Maysan+Valenzuela+City" target="_blank" style={{ color: "#1e5c2e" }} className="hover:underline">72 G. Marcelo Street, Barangay Maysan, Valenzuela City</a> },
+    { icon: "🕙", title: "Hours",    detail: "Mon–Sun: 11AM – 9PM" },
+    { icon: "📞", title: "Phone",    detail: "+63 9482820392" },
   ];
   return (
     <section id="contact" className="py-24" style={{ background: "#e8f0e1" }}>
@@ -531,7 +531,7 @@ function Footer() {
         </div>
         <div className="border-t border-white/20 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-white/40 text-sm">© 2025 ShockBites. All rights reserved.</p>
-          <p className="text-white/40 text-sm">123 Shock Street, Manila, PH | Mon–Sun: 10AM–10PM</p>
+          <p className="text-white/40 text-sm"><a href="https://maps.google.com/?q=72+G.+Marcelo+Street+Barangay+Maysan+Valenzuela+City" target="_blank" className="hover:underline text-white/40">72 G. Marcelo Street, Barangay Maysan, Valenzuela City</a> | Mon–Sun: 11AM–9PM</p>
         </div>
       </div>
     </footer>
