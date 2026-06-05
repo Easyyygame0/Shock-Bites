@@ -8,7 +8,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Open shockbitesProj.html",
-            "file": "c:\\Users\\kim\\Documents\\shockbites\\shockbitesProj.html"
+            "file": "c:\\Users\\kim\\Documents\\shockbites\\index.html"
         }
     ]
 }
