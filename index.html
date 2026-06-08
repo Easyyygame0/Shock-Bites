@@ -132,10 +132,10 @@ function CardVisual({ product }) {
 function Navbar({ cartCount, onCartOpen }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const links = [
-    { label: "About Us", id: "index.html" },
-    { label: "Menu", href: "menu.html" },
-    { label: "Togue-ther", href: "togue-ther.html" },
-    { label: "Contact", id: "contact" },
+    { label: "About Us", href: "/#about" },
+    { label: "Menu", href: "/menu.html" },
+    { label: "Togue-ther", href: "/togue-ther.html" },
+    { label: "Contact", href: "/#contact" },
   ];
 
   return (
@@ -143,24 +143,17 @@ function Navbar({ cartCount, onCartOpen }) {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <button onClick={() => scrollTo("hero")} className="flex items-center gap-3">
-         <img src="Images/Shockbites-logo.png" alt="ShockBites" className="h-28 w-auto" />
+         <img  src="Images/Shockbites-logo.png" alt="ShockBites" className="h-28 w-auto" />
           <span className="font-display text-2xl tracking-widest text-white hidden sm:block">SHOCKBITES</span>
         </button>
 
         {/* Desktop links */}
         <nav className="hidden md:flex items-center gap-10">
           {links.map(l => (
-            l.href ? (
-              <a key={l.label} href={l.href}
-                className="font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 transition-colors">
-                {l.label}
-              </a>
-            ) : (
-              <button key={l.id} onClick={() => scrollTo(l.id)}
-                className="font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 transition-colors">
-                {l.label}
-              </button>
-            )
+            <a key={l.label} href={l.href}
+              className="font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 transition-colors">
+              {l.label}
+            </a>
           ))}
         </nav>
 
@@ -196,17 +189,11 @@ function Navbar({ cartCount, onCartOpen }) {
       {mobileOpen && (
         <div className="md:hidden border-t border-white/20 py-4 px-4 space-y-2" style={{ background: "#1e5c2e" }}>
           {links.map(l => (
-            l.href ? (
-              <a key={l.label} href={l.href}
-                className="block w-full text-left font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 py-2 transition-colors">
-                {l.label}
-              </a>
-            ) : (
-              <button key={l.id} onClick={() => { scrollTo(l.id); setMobileOpen(false); }}
-                className="block w-full text-left font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 py-2 transition-colors">
-                {l.label}
-              </button>
-            )
+            <a key={l.label} href={l.href}
+              className="block w-full text-left font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 py-2 transition-colors"
+              onClick={() => setMobileOpen(false)}>
+              {l.label}
+            </a>
           ))}
         </div>
       )}
@@ -262,17 +249,17 @@ function Hero() {
        <div className="relative hidden md:flex items-center justify-center h-[600px]">
   {/* Big burger circle */}
   <div className="absolute right-8 top-4 w-80 h-80 rounded-full border-4 border-white shadow-2xl overflow-hidden">
-    <img src="Images/Burger.png" alt="Burger" className="w-full h-full object-cover" />
+    <img  src="Images/Burger.png" alt="Burger" className="w-full h-full object-cover" />
   </div>
 
   {/* Shawarma circle */}
   <div className="absolute left-8 bottom-8 w-64 h-64 rounded-full border-4 border-white shadow-xl overflow-hidden">
-    <img src="Images/Shawarma.png" alt="Shawarma" className="w-full h-full object-cover" />
+    <img  src="Images/Shawarma.png" alt="Shawarma" className="w-full h-full object-cover" />
   </div>
 
   {/* Togueth-wrap circle */}
   <div className="absolute right-8 bottom-4 w-56 h-56 rounded-full border-4 border-white shadow-xl overflow-hidden">
-    <img src="Images/Togueth-wrap.png" alt="Wrap" className="w-full h-full object-cover" />
+    <img  src="Images/Togueth-wrap.png" alt="Wrap" className="w-full h-full object-cover" />
   </div>
 
   {/* Chevrons decoration */}
@@ -506,7 +493,7 @@ function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src="images/Shockbites-logo.png" alt="ShockBites" className="h-12 w-auto" />
+              <img  src="Images/Shockbites-logo.png" alt="ShockBites" className="h-12 w-auto" />
               <span className="font-display text-2xl tracking-widest text-white">SHOCKBITES</span>
             </div>
             <p className="text-white/60 text-sm">Bold flavors, fresh ingredients, and unforgettable bites.</p>
@@ -514,10 +501,10 @@ function Footer() {
           <div>
             <h4 className="font-display text-lg tracking-wider text-white mb-4">QUICK LINKS</h4>
             <div className="flex flex-col gap-2">
-              <a href="index.html" className="text-white/60 text-sm hover:text-white transition-colors">Home</a>
-              <a href="index.html#about" className="text-white/60 text-sm hover:text-white transition-colors">About Us</a>
-              <a href="menu.html" className="text-white/60 text-sm hover:text-white transition-colors">Menu</a>
-              <a href="index.html#contact" className="text-white/60 text-sm hover:text-white transition-colors">Contact</a>
+              <a href="/" className="text-white/60 text-sm hover:text-white transition-colors">Home</a>
+              <a href="/#about" className="text-white/60 text-sm hover:text-white transition-colors">About Us</a>
+              <a href="/menu.html" className="text-white/60 text-sm hover:text-white transition-colors">Menu</a>
+              <a href="/#contact" className="text-white/60 text-sm hover:text-white transition-colors">Contact</a>
             </div>
           </div>
           <div>
