@@ -126,10 +126,10 @@ function pushRestaurantOrder(order) {
 /* ── DATA ───────────────────────────────────────────── */
 const PRODUCTS = [
   { id: 1,  name: "Cheesy Togchomp Classic",   category: "House Specials", price: 109, image: "Images/Cheesy-togchomp.png", description: "Simple yet flavorful burger made with a crispy togue-based patty, topped with melted cheese and savory sauces" },
-  { id: 2,  name: "Sproutarma",                category: "House Specials", price: 109, image: "Images/Sproutarma.png", description: "A flavorful shawarma-style wrap made with seasoned togue, combined with fresh vegetables and savory sauces" },
-  { id: 3,  name: "Hot Sproutarma",            category: "House Specials", price: 119, image: "Images/hot-sproutarma.png", description: "Spicy version of our classic Sproutarma with extra heat" },
-  { id: 4,  name: "Togueth Wrap (3pcs)",       category: "House Specials", price: 89,  image: "Images/Togueth-wrap.png", description: "A healthy yet satisfying snack made with fresh togue, melted cheese, and a blend of flavorful sauces" },
-  { id: 5,  name: "Hot Togueth Wrap",          category: "House Specials", price: 99,  image: "Images/hot-togueth-wrap.png", description: "Spicy version of our Togueth Wrap with extra kick" },
+  { id: 2,  name: "Sproutarma",                category: "House Specials", price: 109, image: "Images/Sproutarma.png", description: "A flavorful shawarma-style wrap made with seasoned togue, combined with fresh vegetables and savory sauces",
+    variants: [{ label: "Option", options: [{ name: "Regular", price: 109 }, { name: "Hot", price: 119 }] }] },
+  { id: 4,  name: "Togueth Wrap (3pcs)",       category: "House Specials", price: 89,  image: "Images/Togueth-wrap.png", description: "A healthy yet satisfying snack made with fresh togue, melted cheese, and a blend of flavorful sauces",
+    variants: [{ label: "Option", options: [{ name: "Regular 3pcs", price: 89 }, { name: "Hot 3pcs", price: 99 }, { name: "With Fries", price: 109 }] }] },
   { id: 6,  name: "Togueth Wrap with Fries",   category: "House Specials", price: 109, image: "Images/Togueth-wrap-with-fries.png", description: "Togueth Wrap served with a side of golden fries" },
   { id: 7,  name: "Cheesy Togchomp",           category: "Burgers",        price: 109, image: "Images/Cheesy-togchomp.png", description: "Simple yet flavorful burger made with a crispy togue-based patty, topped with melted cheese and savory sauces" },
   { id: 8,  name: "Cheesy Togchomp Deluxe",    category: "Burgers",        price: 129, image: "Images/Cheesy-togchomp-deluxe.png", description: "A flavorful crispy togue patty topped with melted cheese, fresh lettuce, tomato, cucumber, and savory sauces" },
@@ -158,6 +158,26 @@ const GRADIENTS = [
 function scrollTo(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: "smooth" });
+}
+
+function getSelectedVariantPrice(product, selectedVariants) {
+  if (!product?.variants) return product.price;
+
+  for (const variant of product.variants) {
+    const selectedValue = selectedVariants?.[variant.label];
+    if (!selectedValue) continue;
+
+    const selectedOption = variant.options.find(opt => {
+      const optionName = typeof opt === "string" ? opt : opt.name;
+      return optionName === selectedValue;
+    });
+
+    if (selectedOption && typeof selectedOption === "object" && typeof selectedOption.price === "number") {
+      return selectedOption.price;
+    }
+  }
+
+  return product.price;
 }
 
 function CardVisual({ product }) {
@@ -520,9 +540,7 @@ function MenuSection({ cart, onAddToCart }) {
           onClick={() => {
             const allSelected = variantModal.variants.every(v => selectedVariants[v.label]);
             if (!allSelected) { alert("Please select all options!"); return; }
-            const sizeOpt = variantModal.variants.find(v => v.label === "Size");
-            const selectedSize = sizeOpt ? sizeOpt.options.find(o => o.name === selectedVariants["Size"]) : null;
-            const finalPrice = selectedSize ? selectedSize.price : variantModal.price;
+            const finalPrice = getSelectedVariantPrice(variantModal, selectedVariants);
             onAddToCart({ ...variantModal, price: finalPrice, selectedVariants });
             setVariantModal(null);
           }}
