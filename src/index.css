@@ -2,36 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
-}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Nunito', sans-serif; background: #f0f4e8; color: #1a3a1a; }
 
-html, body, #root {
-  min-height: 100%;
-}
+/* Cart drawer slide-in */
+.cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.cart-overlay.open { opacity: 1; pointer-events: all; }
+.cart-drawer { position: fixed; top: 0; right: 0; height: 100%; width: 100%; max-width: 420px; background: #fff; z-index: 101; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
+.cart-drawer.open { transform: translateX(0); }
 
-body {
-  @apply bg-slate-950 text-slate-100 antialiased;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 760px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.25s; }
+.modal-overlay.open .modal-box { transform: scale(1); }
 
-input, select, button, textarea {
-  @apply border border-slate-700 bg-slate-900 text-slate-100 outline-none rounded-2xl;
-}
+/* Scrollable inner */
+.modal-body { overflow-y: auto; flex: 1; }
 
-button {
-  @apply transition-all duration-200 ease-out;
-}
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
 
-::-webkit-scrollbar {
-  width: 10px;
-}
+/* Smooth scroll */
+html { scroll-behavior: smooth; }
 
-::-webkit-scrollbar-track {
-  background: #0f172a;
-}
+/* Number input without arrows */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 9999px;
-}
+/* Focus ring */
+input:focus, select:focus, textarea:focus { outline: 2px solid #1e5c2e; outline-offset: 2px; }
