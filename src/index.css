@@ -16,20 +16,19 @@ body { margin: 0; font-family: 'Nunito', sans-serif; background: #f0f4e8; color:
 .modal-overlay.open { opacity: 1; pointer-events: all; }
 .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 760px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.25s; }
 .modal-overlay.open .modal-box { transform: scale(1); }
-
-/* Scrollable inner */
 .modal-body { overflow-y: auto; flex: 1; }
 
 /* Spinner */
 @keyframes spin { to { transform: rotate(360deg); } }
-.spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
 
 /* Smooth scroll */
 html { scroll-behavior: smooth; }
 
-/* Number input without arrows */
+/* No arrows on number input */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-/* Focus ring */
-input:focus, select:focus, textarea:focus { outline: 2px solid #1e5c2e; outline-offset: 2px; }
+/* Override Tailwind's default input/button/select resets */
+input, select, textarea { all: unset; box-sizing: border-box; }
+button { all: unset; box-sizing: border-box; cursor: pointer; }
