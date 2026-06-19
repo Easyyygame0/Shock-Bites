@@ -1,11 +1,17 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../CartContext';
 
 export default function Navbar({ logoSize = 'h-16' }: { logoSize?: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { cartCount, setCartOpen } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (href: string) => {
+    if (href === '/') return location.pathname === '/';
+    return location.pathname.startsWith(href.replace('/#', '/'));
+  };
 
   const links = [
     { label: "Home",       href: "/" },
@@ -46,15 +52,27 @@ export default function Navbar({ logoSize = 'h-16' }: { logoSize?: string }) {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-10">
-          {links.map(l => (
-            <button
-              key={l.label}
-              onClick={() => handleLink(l.href)}
-              className="font-display text-base lg:text-lg tracking-widest text-white/90 hover:text-yellow-300 transition-colors whitespace-nowrap"
-            >
-              {l.label}
-            </button>
-          ))}
+          {links.map(l => {
+            const active = isActive(l.href);
+            return (
+              <button
+                key={l.label}
+                onClick={() => handleLink(l.href)}
+                className="relative font-display text-base lg:text-lg tracking-widest transition-colors whitespace-nowrap pb-1"
+                style={{ color: active ? "#d4f53c" : "rgba(255,255,255,0.9)" }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.color = "#d4f53c"; }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.color = "rgba(255,255,255,0.9)"; }}
+              >
+                {l.label}
+                {active && (
+                  <span
+                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                    style={{ background: "#d4f53c" }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-1">
@@ -104,15 +122,25 @@ export default function Navbar({ logoSize = 'h-16' }: { logoSize?: string }) {
           className="md:hidden border-t border-white/20 pb-4 px-4 space-y-1"
           style={{ background: "#1e5c2e" }}
         >
-          {links.map(l => (
-            <button
-              key={l.label}
-              onClick={() => handleLink(l.href)}
-              className="block w-full text-left font-display text-lg tracking-widest text-white/90 hover:text-yellow-300 py-3 border-b border-white/10 last:border-0 transition-colors"
-            >
-              {l.label}
-            </button>
-          ))}
+          {links.map(l => {
+            const active = isActive(l.href);
+            return (
+              <button
+                key={l.label}
+                onClick={() => handleLink(l.href)}
+                className="flex items-center justify-between w-full text-left font-display text-lg tracking-widest py-3 border-b border-white/10 last:border-0 transition-colors"
+                style={{ color: active ? "#d4f53c" : "rgba(255,255,255,0.9)" }}
+              >
+                {l.label}
+                {active && (
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ background: "#d4f53c" }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
     </header>
