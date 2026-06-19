@@ -5,30 +5,106 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: 'Nunito', sans-serif; background: #f0f4e8; color: #1a3a1a; }
 
-/* Cart drawer slide-in */
-.cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+/* ── Cart Drawer ──────────────────────────────────────── */
+.cart-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100; opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
 .cart-overlay.open { opacity: 1; pointer-events: all; }
-.cart-drawer { position: fixed; top: 0; right: 0; height: 100%; width: 100%; max-width: 420px; background: #fff; z-index: 101; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
+
+.cart-drawer {
+  position: fixed; top: 0; right: 0;
+  height: 100%; width: 100%; max-width: 420px;
+  background: #fff; z-index: 101;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+}
 .cart-drawer.open { transform: translateX(0); }
 
-/* Modal */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+@media (max-width: 480px) {
+  .cart-drawer { max-width: 100%; }
+}
+
+/* ── Checkout Modal ───────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  opacity: 0; transition: opacity 0.25s;
+  pointer-events: none;
+}
 .modal-overlay.open { opacity: 1; pointer-events: all; }
-.modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 760px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.25s; }
+
+.modal-box {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%; max-width: 760px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transform: scale(0.95);
+  transition: transform 0.25s;
+}
 .modal-overlay.open .modal-box { transform: scale(1); }
 .modal-body { overflow-y: auto; flex: 1; }
 
-/* Spinner */
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+/* Mobile: full-height bottom sheet for checkout */
+@media (max-width: 640px) {
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-box {
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+    transform: translateY(20px);
+  }
+  .modal-overlay.open .modal-box { transform: translateY(0); }
+  /* Stack the 2-col checkout grid on mobile */
+  .checkout-grid { display: flex !important; flex-direction: column !important; }
+}
 
-/* Smooth scroll */
+/* ── Spinner ──────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+/* ── Scroll behaviours ────────────────────────────────── */
 html { scroll-behavior: smooth; }
 
-/* No arrows on number input */
+/* Horizontal scrollable filter strip on mobile */
+.filter-strip {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+@media (max-width: 640px) {
+  .filter-strip {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .filter-strip::-webkit-scrollbar { display: none; }
+  .filter-strip button { flex-shrink: 0; }
+}
+
+/* ── Form resets ──────────────────────────────────────── */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-/* Override Tailwind's default input/button/select resets */
 input, select, textarea { all: unset; box-sizing: border-box; }
 button { all: unset; box-sizing: border-box; cursor: pointer; }
+
+/* ── Image circles on hero (mobile visibility) ────────── */
+@media (max-width: 767px) {
+  .hero-images { display: none !important; }
+  .hero-images-mobile { display: flex !important; }
+}

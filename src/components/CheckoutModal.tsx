@@ -54,7 +54,10 @@ export default function CheckoutModal() {
   const field = (name: string, label: string, placeholder: string, extra: Record<string, string> = {}) => (
     <div>
       <label className="block text-sm font-bold mb-1" style={{ color: "#1a3a1a" }}>{label}</label>
-      <input name={name} value={(form as Record<string,string>)[name]} placeholder={placeholder}
+      <input
+        name={name}
+        value={(form as Record<string, string>)[name]}
+        placeholder={placeholder}
         onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))}
         className="w-full px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-colors"
         style={{ borderColor: errors[name] ? "#dc2626" : "rgba(30,92,46,0.25)", color: "#1a3a1a", background: "#fff" }}
@@ -65,11 +68,20 @@ export default function CheckoutModal() {
   );
 
   return (
-    <div className={`modal-overlay ${checkoutOpen ? "open" : ""}`} onClick={e => e.target === e.currentTarget && handleClose()}>
+    <div
+      className={`modal-overlay ${checkoutOpen ? "open" : ""}`}
+      onClick={e => e.target === e.currentTarget && handleClose()}
+    >
       <div className="modal-box">
-        <div className="p-6 flex items-center justify-between flex-shrink-0" style={{ background: "#1e5c2e" }}>
-          <span className="font-display text-2xl tracking-widest text-white">{success ? "ORDER PLACED!" : "CHECKOUT"}</span>
-          <button onClick={handleClose} className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors">
+        {/* Header */}
+        <div className="p-4 sm:p-6 flex items-center justify-between flex-shrink-0" style={{ background: "#1e5c2e" }}>
+          <span className="font-display text-xl sm:text-2xl tracking-widest text-white">
+            {success ? "ORDER PLACED!" : "CHECKOUT"}
+          </span>
+          <button
+            onClick={handleClose}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors"
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -77,54 +89,66 @@ export default function CheckoutModal() {
         </div>
 
         {success ? (
-          <div className="p-12 flex flex-col items-center justify-center text-center gap-5">
-            <div className="w-24 h-24 rounded-full flex items-center justify-center text-white text-4xl shadow-lg" style={{ background: "#1e5c2e" }}>✓</div>
-            <h2 className="font-display text-4xl tracking-wider" style={{ color: "#1e5c2e" }}>ORDER CONFIRMED!</h2>
-            <p className="text-lg font-semibold" style={{ color: "#5a7a4a" }}>Your food is being prepared with love.</p>
-            <div className="px-8 py-4 rounded-xl border" style={{ background: "#eef3e4", borderColor: "rgba(30,92,46,0.2)" }}>
+          <div className="p-8 sm:p-12 flex flex-col items-center justify-center text-center gap-5">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-white text-3xl sm:text-4xl shadow-lg" style={{ background: "#1e5c2e" }}>✓</div>
+            <h2 className="font-display text-3xl sm:text-4xl tracking-wider" style={{ color: "#1e5c2e" }}>ORDER CONFIRMED!</h2>
+            <p className="text-base sm:text-lg font-semibold" style={{ color: "#5a7a4a" }}>Your food is being prepared with love.</p>
+            <div className="px-6 sm:px-8 py-4 rounded-xl border" style={{ background: "#eef3e4", borderColor: "rgba(30,92,46,0.2)" }}>
               <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#5a7a4a" }}>Order Number</p>
-              <p className="font-display text-3xl tracking-wider" style={{ color: "#1e5c2e" }}>{orderNum}</p>
+              <p className="font-display text-2xl sm:text-3xl tracking-wider" style={{ color: "#1e5c2e" }}>{orderNum}</p>
             </div>
             <p className="text-sm" style={{ color: "#5a7a4a" }}>Estimated delivery: 30–45 minutes</p>
-            <button onClick={handleClose}
-              className="font-display tracking-widest text-lg px-12 py-4 rounded-xl text-white hover:opacity-90 transition-all"
-              style={{ background: "#1e5c2e" }}>
+            <button
+              onClick={handleClose}
+              className="font-display tracking-widest text-base sm:text-lg px-10 sm:px-12 py-3 sm:py-4 rounded-xl text-white hover:opacity-90 transition-all"
+              style={{ background: "#1e5c2e" }}
+            >
               CONTINUE SHOPPING
             </button>
           </div>
         ) : (
           <div className="modal-body">
-            <div className="grid md:grid-cols-2">
-              <div className="p-6 border-r" style={{ background: "#f0f4e8", borderColor: "rgba(30,92,46,0.15)" }}>
-                <h3 className="font-display text-xl tracking-wider uppercase mb-4" style={{ color: "#1e5c2e" }}>Your Order</h3>
-                <div className="space-y-3 mb-6">
+            {/* Stacks to single column on mobile via .checkout-grid CSS class */}
+            <div className="checkout-grid grid md:grid-cols-2">
+              {/* Order summary */}
+              <div className="p-4 sm:p-6 md:border-r" style={{ background: "#f0f4e8", borderColor: "rgba(30,92,46,0.15)" }}>
+                <h3 className="font-display text-lg sm:text-xl tracking-wider uppercase mb-4" style={{ color: "#1e5c2e" }}>Your Order</h3>
+                <div className="space-y-3 mb-6 max-h-40 md:max-h-none overflow-y-auto">
                   {cart.map(item => (
                     <div key={item.product.id} className="flex justify-between items-center text-sm">
-                      <span className="font-semibold" style={{ color: "#1a3a1a" }}>{item.product.name} <span style={{ color: "#5a7a4a" }}>×{item.quantity}</span></span>
-                      <span className="font-bold" style={{ color: "#1e5c2e" }}>₱{item.product.price * item.quantity}</span>
+                      <span className="font-semibold" style={{ color: "#1a3a1a" }}>
+                        {item.product.name} <span style={{ color: "#5a7a4a" }}>×{item.quantity}</span>
+                      </span>
+                      <span className="font-bold ml-2 flex-shrink-0" style={{ color: "#1e5c2e" }}>₱{item.product.price * item.quantity}</span>
                     </div>
                   ))}
                 </div>
                 <div className="border-t pt-4 flex justify-between items-center" style={{ borderColor: "rgba(30,92,46,0.2)" }}>
-                  <span className="font-display text-xl tracking-wider" style={{ color: "#1e5c2e" }}>TOTAL</span>
-                  <span className="font-black text-2xl" style={{ color: "#1e5c2e" }}>₱{subtotal}</span>
+                  <span className="font-display text-lg sm:text-xl tracking-wider" style={{ color: "#1e5c2e" }}>TOTAL</span>
+                  <span className="font-black text-xl sm:text-2xl" style={{ color: "#1e5c2e" }}>₱{subtotal}</span>
                 </div>
               </div>
 
-              <form onSubmit={submit} className="p-6 space-y-4">
+              {/* Form */}
+              <form onSubmit={submit} className="p-4 sm:p-6 space-y-4">
                 {field("fullName", "Full Name", "Juan Dela Cruz")}
                 {field("phone", "Phone", "+63 912 345 6789", { type: "tel" })}
+
+                {/* Payment method */}
                 <div>
                   <label className="block text-sm font-bold mb-2" style={{ color: "#1a3a1a" }}>Payment Method</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[["card","Credit Card"],["gcash","GCash"],["cod","COD"]].map(([val, label]) => (
-                      <button key={val} type="button"
+                      <button
+                        key={val}
+                        type="button"
                         onClick={() => setForm(f => ({ ...f, paymentMethod: val }))}
-                        className="py-2 px-3 rounded-xl border-2 text-xs font-bold transition-all"
+                        className="py-2 px-2 sm:px-3 rounded-xl border-2 text-xs font-bold transition-all"
                         style={form.paymentMethod === val
                           ? { borderColor: "#1e5c2e", background: "rgba(30,92,46,0.1)", color: "#1e5c2e" }
                           : { borderColor: "rgba(30,92,46,0.2)", color: "#5a7a4a", background: "#fff" }
-                        }>
+                        }
+                      >
                         {label}
                       </button>
                     ))}
@@ -142,9 +166,9 @@ export default function CheckoutModal() {
                 )}
 
                 {form.paymentMethod === "gcash" && (
-                  <div className="border-2 border-dashed rounded-xl p-6 text-center"
+                  <div className="border-2 border-dashed rounded-xl p-4 sm:p-6 text-center"
                        style={{ borderColor: "rgba(30,92,46,0.35)", background: "rgba(30,92,46,0.05)" }}>
-                    <div className="w-28 h-28 border rounded-xl mx-auto mb-3 flex items-center justify-center"
+                    <div className="w-24 h-24 border rounded-xl mx-auto mb-3 flex items-center justify-center"
                          style={{ background: "rgba(30,92,46,0.08)", borderColor: "rgba(30,92,46,0.2)" }}>
                       <span className="text-xs font-bold" style={{ color: "rgba(30,92,46,0.4)" }}>QR CODE</span>
                     </div>
@@ -153,9 +177,12 @@ export default function CheckoutModal() {
                   </div>
                 )}
 
-                <button type="submit" disabled={loading}
-                  className="w-full py-4 rounded-xl font-display tracking-widest text-lg text-white transition-all flex items-center justify-center gap-3"
-                  style={{ background: "#1e5c2e", opacity: loading ? 0.8 : 1 }}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 sm:py-4 rounded-xl font-display tracking-widest text-base sm:text-lg text-white transition-all flex items-center justify-center gap-3"
+                  style={{ background: "#1e5c2e", opacity: loading ? 0.8 : 1 }}
+                >
                   {loading ? <><div className="spinner" />Placing Order...</> : "PLACE ORDER"}
                 </button>
               </form>
