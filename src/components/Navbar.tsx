@@ -8,7 +8,7 @@ export default function Navbar({ logoSize = 'h-16' }: { logoSize?: string }) {
   const navigate = useNavigate();
 
   const links = [
-    { label: "About Us",   href: "/#about" },
+    { label: "Home",       href: "/" },
     { label: "Menu",       href: "/menu" },
     { label: "Togue-ther", href: "/togue-ther" },
     { label: "Contact",    href: "/#contact" },
