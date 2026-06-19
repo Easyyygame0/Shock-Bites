@@ -95,9 +95,9 @@ function OffersStrip() {
     { icon: "📞", text: "Order by Phone or Online" },
   ];
   return (
-    <section className="py-3 sm:py-4" style={{ background: "#1e5c2e" }}>
-      <div className="max-w-7xl mx-auto px-4 overflow-x-auto">
-        <div className="flex items-center justify-start sm:justify-center gap-6 sm:gap-8 md:gap-16 text-white min-w-max sm:min-w-0">
+    <section className="py-3 sm:py-4 overflow-hidden" style={{ background: "#1e5c2e" }}>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-center flex-wrap gap-4 sm:gap-8 md:gap-16 text-white">
           {items.map(item => (
             <div key={item.text} className="flex items-center gap-2 text-xs sm:text-sm font-semibold whitespace-nowrap">
               <span>{item.icon}</span>{item.text}
@@ -205,7 +205,7 @@ function MenuSection() {
                     </div>
                     <p className="text-xs sm:text-sm mb-4 leading-relaxed flex-1" style={{ color: "#5a7a4a" }}>{product.description}</p>
                     <button
-                      className="mt-auto w-full py-2 rounded-xl font-bold text-sm transition-all"
+                      className="mt-auto w-full py-2 rounded-xl font-bold text-sm transition-all text-center"
                       onClick={() => {
                         if (product.variants) { setVariantModal(product); setSelectedVariants({}); }
                         else addToCart(product);
