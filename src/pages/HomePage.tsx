@@ -10,8 +10,8 @@ function Hero() {
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden" style={{ background: "#eef3e4" }}>
-      {/* Decorative background shape */}
-      <div className="absolute top-0 right-0 h-full w-1/2 pointer-events-none overflow-hidden">
+      {/* Decorative background shape — desktop only */}
+      <div className="hidden md:block absolute top-0 right-0 h-full w-1/2 pointer-events-none overflow-hidden">
         <svg viewBox="0 0 600 800" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
           <path d="M80,0 C200,100 0,200 100,350 C200,500 50,600 150,800 L600,800 L600,0 Z" fill="#1e5c2e" opacity="0.85"/>
           <path d="M120,0 C280,150 80,280 180,420 C280,560 100,650 200,800 L600,800 L600,0 Z" fill="#2e7d42" opacity="0.5"/>
