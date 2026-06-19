@@ -110,12 +110,13 @@ function OffersStrip() {
 }
 
 function MenuSection() {
-  const { cart, addToCart } = useCart();
+  const { cart, addToCart, buyNow } = useCart();
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("default");
   const [variantModal, setVariantModal] = useState<Product | null>(null);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [variantIntent, setVariantIntent] = useState<"add" | "buynow">("add");
 
   const products = useMemo(() => {
     let r = [...PRODUCTS];
@@ -198,25 +199,39 @@ function MenuSection() {
                   className="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl"
                 >
                   <CardVisual product={product} />
-                  <div className="p-4 sm:p-5 flex flex-col" style={{ minHeight: '200px' }}>
+                  <div className="p-4 sm:p-5 flex flex-col" style={{ minHeight: '220px' }}>
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-bold text-sm sm:text-base leading-snug" style={{ color: "#1a3a1a" }}>{product.name}</h4>
                       <span className="font-black text-base sm:text-lg ml-2 shrink-0" style={{ color: "#1e5c2e" }}>₱{product.price}</span>
                     </div>
                     <p className="text-xs sm:text-sm mb-4 leading-relaxed flex-1" style={{ color: "#5a7a4a" }}>{product.description}</p>
-                    <button
-                      className="mt-auto w-full py-2 rounded-xl font-bold text-sm transition-all text-center"
-                      onClick={() => {
-                        if (product.variants) { setVariantModal(product); setSelectedVariants({}); }
-                        else addToCart(product);
-                      }}
-                      style={inCart
-                        ? { background: "rgba(30,92,46,0.1)", color: "#1e5c2e", border: "2px solid #1e5c2e" }
-                        : { background: "#1e5c2e", color: "#fff", border: "2px solid #1e5c2e" }
-                      }
-                    >
-                      {inCart ? "✓ Added to Order" : "Add to Order"}
-                    </button>
+                    <div className="mt-auto flex gap-2">
+                      <button
+                        className="flex-1 py-2 rounded-xl font-bold text-sm transition-all text-center"
+                        onClick={() => {
+                          if (product.variants) { setVariantModal(product); setSelectedVariants({}); setVariantIntent("add"); }
+                          else addToCart(product);
+                        }}
+                        style={inCart
+                          ? { background: "rgba(30,92,46,0.1)", color: "#1e5c2e", border: "2px solid #1e5c2e" }
+                          : { background: "#1e5c2e", color: "#fff", border: "2px solid #1e5c2e" }
+                        }
+                      >
+                        {inCart ? "✓ Added" : "Add to Cart"}
+                      </button>
+                      <button
+                        className="flex-1 py-2 rounded-xl font-bold text-sm transition-all text-center border-2"
+                        onClick={() => {
+                          if (product.variants) { setVariantModal(product); setSelectedVariants({}); setVariantIntent("buynow"); }
+                          else buyNow(product);
+                        }}
+                        style={{ borderColor: "#d4a500", background: "#ffc107", color: "#1a3a1a" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "#e6ac00")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "#ffc107")}
+                      >
+                        Buy Now
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -262,13 +277,15 @@ function MenuSection() {
                   const allSelected = variantModal.variants!.every(v => selectedVariants[v.label]);
                   if (!allSelected) { alert("Please select all options!"); return; }
                   const finalPrice = getSelectedVariantPrice(variantModal, selectedVariants);
-                  addToCart({ ...variantModal, price: finalPrice, selectedVariants });
+                  const finalProduct = { ...variantModal, price: finalPrice, selectedVariants };
+                  if (variantIntent === "buynow") buyNow(finalProduct);
+                  else addToCart(finalProduct);
                   setVariantModal(null);
                 }}
                 className="flex-1 py-2 sm:py-3 rounded-xl font-bold text-sm text-white"
-                style={{ background: "#1e5c2e" }}
+                style={{ background: variantIntent === "buynow" ? "#ffc107" : "#1e5c2e", color: variantIntent === "buynow" ? "#1a3a1a" : "#fff" }}
               >
-                Add to Order
+                {variantIntent === "buynow" ? "Buy Now" : "Add to Cart"}
               </button>
             </div>
           </div>

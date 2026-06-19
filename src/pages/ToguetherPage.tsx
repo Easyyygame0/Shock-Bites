@@ -7,19 +7,16 @@ import { COMBOS } from '../data';
 import { Product } from '../types';
 
 export default function ToguetherPage() {
-  const { cart, addToCart } = useCart();
+  const { cart, addToCart, buyNow } = useCart();
 
-  const addCombo = (combo: typeof COMBOS[0]) => {
-    const product: Product = {
-      id: combo.id,
-      name: combo.name,
-      category: "Combos",
-      price: combo.price,
-      description: combo.description,
-      image: combo.image,
-    };
-    addToCart(product);
-  };
+  const toProduct = (combo: typeof COMBOS[0]): Product => ({
+    id: combo.id,
+    name: combo.name,
+    category: "Combos",
+    price: combo.price,
+    description: combo.description,
+    image: combo.image,
+  });
 
   return (
     <>
@@ -46,7 +43,7 @@ export default function ToguetherPage() {
                   className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-200 border-2"
                   style={{ borderColor: "#d4f53c" }}
                 >
-                  {/* Image area */}
+                  {/* Image */}
                   <div className="relative">
                     <img
                       src={combo.image}
@@ -65,23 +62,36 @@ export default function ToguetherPage() {
                   </div>
 
                   {/* Card body */}
-                  <div className="p-4 sm:p-6 flex flex-col" style={{ minHeight: '140px' }}>
+                  <div className="p-4 sm:p-6 flex flex-col" style={{ minHeight: '160px' }}>
                     <h3 className="font-display text-xl sm:text-2xl tracking-wider mb-2" style={{ color: "#1e5c2e" }}>
                       {combo.name}
                     </h3>
                     <p className="text-xs sm:text-sm font-semibold mb-4 flex-1" style={{ color: "#5a7a4a" }}>
                       {combo.description}
                     </p>
-                    <button
-                      onClick={() => addCombo(combo)}
-                      className="w-full py-2 sm:py-3 rounded-xl font-bold text-sm transition-all"
-                      style={inCart
-                        ? { background: "rgba(30,92,46,0.1)", color: "#1e5c2e", border: "2px solid #1e5c2e" }
-                        : { background: "#1e5c2e", color: "#fff" }
-                      }
-                    >
-                      {inCart ? "✓ Added to Cart" : "Add to Cart"}
-                    </button>
+
+                    {/* Two-button row */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => addToCart(toProduct(combo))}
+                        className="flex-1 py-2 sm:py-3 rounded-xl font-bold text-sm transition-all text-center"
+                        style={inCart
+                          ? { background: "rgba(30,92,46,0.1)", color: "#1e5c2e", border: "2px solid #1e5c2e" }
+                          : { background: "#1e5c2e", color: "#fff" }
+                        }
+                      >
+                        {inCart ? "✓ Added" : "Add to Cart"}
+                      </button>
+                      <button
+                        onClick={() => buyNow(toProduct(combo))}
+                        className="flex-1 py-2 sm:py-3 rounded-xl font-bold text-sm transition-all text-center border-2"
+                        style={{ borderColor: "#d4a500", background: "#ffc107", color: "#1a3a1a" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "#e6ac00")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "#ffc107")}
+                      >
+                        Buy Now
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

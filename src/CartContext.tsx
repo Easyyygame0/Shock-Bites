@@ -33,6 +33,10 @@ interface CartContextType {
   setCartOpen: (v: boolean) => void;
   checkoutOpen: boolean;
   setCheckoutOpen: (v: boolean) => void;
+  /* Buy-now flow — bypasses the shared cart */
+  buyNowItems: CartItem[];
+  buyNow: (product: Product) => void;
+  clearBuyNow: () => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -41,6 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>(loadCart);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [buyNowItems, setBuyNowItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
@@ -62,8 +67,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = () => setCart([]);
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
 
+  const buyNow = (product: Product) => {
+    setBuyNowItems([{ product, quantity: 1 }]);
+    setCheckoutOpen(true);
+  };
+
+  const clearBuyNow = () => setBuyNowItems([]);
+
   return (
-    <CartContext.Provider value={{ cart, addToCart, updateQty, removeFromCart, clearCart, cartCount, cartOpen, setCartOpen, checkoutOpen, setCheckoutOpen }}>
+    <CartContext.Provider value={{
+      cart, addToCart, updateQty, removeFromCart, clearCart, cartCount,
+      cartOpen, setCartOpen, checkoutOpen, setCheckoutOpen,
+      buyNowItems, buyNow, clearBuyNow,
+    }}>
       {children}
     </CartContext.Provider>
   );

@@ -3,13 +3,18 @@ import { useCart } from '../CartContext';
 import { pushOrder } from '../CartContext';
 
 export default function CheckoutModal() {
-  const { cart, checkoutOpen, setCheckoutOpen, clearCart } = useCart();
+  const { cart, checkoutOpen, setCheckoutOpen, clearCart, buyNowItems, clearBuyNow } = useCart();
+
+  /* If a Buy Now item exists, use it; otherwise fall back to the shared cart */
+  const isBuyNow = buyNowItems.length > 0;
+  const activeItems = isBuyNow ? buyNowItems : cart;
+
   const [form, setForm] = useState({ fullName: "", phone: "", paymentMethod: "card", cardNumber: "", expiry: "", cvv: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const orderNum = useMemo(() => "SB-" + Math.floor(100000 + Math.random() * 900000), []);
-  const subtotal = cart.reduce((s, i) => s + i.product.price * i.quantity, 0);
+  const subtotal = activeItems.reduce((s, i) => s + i.product.price * i.quantity, 0);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -34,7 +39,7 @@ export default function CheckoutModal() {
     pushOrder({
       id: orderNum,
       customer: { name: form.fullName, phone: form.phone },
-      items: cart.map(item => ({ name: item.product.name, qty: item.quantity, price: item.product.price, subtotal: item.product.price * item.quantity })),
+      items: activeItems.map(item => ({ name: item.product.name, qty: item.quantity, price: item.product.price, subtotal: item.product.price * item.quantity })),
       total: subtotal,
       payment: form.paymentMethod === "card" ? "Card" : form.paymentMethod === "gcash" ? "GCash" : "COD",
       status: "Pending",
@@ -45,7 +50,10 @@ export default function CheckoutModal() {
 
   const handleClose = () => {
     setCheckoutOpen(false);
-    if (success) clearCart();
+    if (success) {
+      if (isBuyNow) clearBuyNow();
+      else clearCart();
+    }
     setSuccess(false);
     setForm({ fullName: "", phone: "", paymentMethod: "card", cardNumber: "", expiry: "", cvv: "" });
     setErrors({});
@@ -75,9 +83,16 @@ export default function CheckoutModal() {
       <div className="modal-box">
         {/* Header */}
         <div className="p-4 sm:p-6 flex items-center justify-between flex-shrink-0" style={{ background: "#1e5c2e" }}>
-          <span className="font-display text-xl sm:text-2xl tracking-widest text-white">
-            {success ? "ORDER PLACED!" : "CHECKOUT"}
-          </span>
+          <div>
+            <span className="font-display text-xl sm:text-2xl tracking-widest text-white">
+              {success ? "ORDER PLACED!" : "CHECKOUT"}
+            </span>
+            {isBuyNow && !success && (
+              <span className="ml-3 text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "#d4f53c", color: "#1e5c2e" }}>
+                Buy Now
+              </span>
+            )}
+          </div>
           <button
             onClick={handleClose}
             className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors"
@@ -108,13 +123,14 @@ export default function CheckoutModal() {
           </div>
         ) : (
           <div className="modal-body">
-            {/* Stacks to single column on mobile via .checkout-grid CSS class */}
             <div className="checkout-grid grid md:grid-cols-2">
               {/* Order summary */}
               <div className="p-4 sm:p-6 md:border-r" style={{ background: "#f0f4e8", borderColor: "rgba(30,92,46,0.15)" }}>
-                <h3 className="font-display text-lg sm:text-xl tracking-wider uppercase mb-4" style={{ color: "#1e5c2e" }}>Your Order</h3>
+                <h3 className="font-display text-lg sm:text-xl tracking-wider uppercase mb-4" style={{ color: "#1e5c2e" }}>
+                  {isBuyNow ? "Buying Now" : "Your Order"}
+                </h3>
                 <div className="space-y-3 mb-6 max-h-40 md:max-h-none overflow-y-auto">
-                  {cart.map(item => (
+                  {activeItems.map(item => (
                     <div key={item.product.id} className="flex justify-between items-center text-sm">
                       <span className="font-semibold" style={{ color: "#1a3a1a" }}>
                         {item.product.name} <span style={{ color: "#5a7a4a" }}>×{item.quantity}</span>
@@ -134,14 +150,12 @@ export default function CheckoutModal() {
                 {field("fullName", "Full Name", "Juan Dela Cruz")}
                 {field("phone", "Phone", "+63 912 345 6789", { type: "tel" })}
 
-                {/* Payment method */}
                 <div>
                   <label className="block text-sm font-bold mb-2" style={{ color: "#1a3a1a" }}>Payment Method</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[["card","Credit Card"],["gcash","GCash"],["cod","COD"]].map(([val, label]) => (
                       <button
-                        key={val}
-                        type="button"
+                        key={val} type="button"
                         onClick={() => setForm(f => ({ ...f, paymentMethod: val }))}
                         className="py-2 px-2 sm:px-3 rounded-xl border-2 text-xs font-bold transition-all"
                         style={form.paymentMethod === val
@@ -178,8 +192,7 @@ export default function CheckoutModal() {
                 )}
 
                 <button
-                  type="submit"
-                  disabled={loading}
+                  type="submit" disabled={loading}
                   className="w-full py-3 sm:py-4 rounded-xl font-display tracking-widest text-base sm:text-lg text-white transition-all flex items-center justify-center gap-3"
                   style={{ background: "#1e5c2e", opacity: loading ? 0.8 : 1 }}
                 >
