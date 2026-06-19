@@ -30,85 +30,6 @@ function CardVisual({ product }: { product: Product }) {
   );
 }
 
-function Hero() {
-  return (
-    <section id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden" style={{ background: "#eef3e4" }}>
-      <div className="absolute top-0 right-0 h-full w-1/2 rounded-bl-[40%] pointer-events-none" style={{ background: "rgba(30,92,46,0.07)" }} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full py-16 sm:py-20 grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs sm:text-sm font-bold mb-4 sm:mb-6"
-               style={{ background: "rgba(30,92,46,0.08)", borderColor: "rgba(30,92,46,0.2)", color: "#1e5c2e" }}>
-            ★ New Items Available Now
-          </div>
-          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider leading-none uppercase mb-4 sm:mb-6" style={{ color: "#1e5c2e" }}>
-            Experience<br />
-            <span style={{ color: "#1a3a1a" }}>The Tasty,</span><br />
-            Amazing<br />
-            <span style={{ color: "#1a3a1a" }}>Variety.</span>
-          </h1>
-          <p className="text-base sm:text-lg font-semibold mb-6 sm:mb-8 max-w-md leading-relaxed" style={{ color: "#5a7a4a" }}>
-            Bold flavors, fresh ingredients, and unforgettable bites — made for people who refuse to settle for ordinary.
-          </p>
-          <button
-            onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' })}
-            className="font-display tracking-widest text-base sm:text-lg h-12 sm:h-14 px-8 sm:px-10 rounded-xl text-white shadow-lg hover:opacity-90 transition-all hover:scale-105"
-            style={{ background: "#1e5c2e" }}>
-            Explore Menu
-          </button>
-        </div>
-
-        {/* Placeholder circles — desktop */}
-        <div className="relative hidden md:flex items-center justify-center h-[400px] lg:h-[460px]">
-          <div className="absolute right-4 top-4 w-52 lg:w-60 h-52 lg:h-60 rounded-full border-4 border-white shadow-2xl flex items-center justify-center overflow-hidden"
-               style={{ background: "linear-gradient(135deg,#1e5c2e,#2e7d42)" }}>
-            <div className="text-center text-white">
-              <div className="font-display text-3xl lg:text-4xl">BURGER</div>
-              <div className="text-xs sm:text-sm font-semibold opacity-75">Classic Double Patty</div>
-              <div className="mt-2 text-xl lg:text-2xl font-black">₱149</div>
-            </div>
-          </div>
-          <div className="absolute left-4 bottom-24 w-36 lg:w-44 h-36 lg:h-44 rounded-full border-4 border-white shadow-xl flex items-center justify-center"
-               style={{ background: "linear-gradient(135deg,#1a6644,#2e8c5a)" }}>
-            <div className="text-center text-white">
-              <div className="font-display text-xl lg:text-2xl">WRAP</div>
-              <div className="text-xs font-semibold opacity-75">Grilled Chicken</div>
-            </div>
-          </div>
-          <div className="absolute right-32 bottom-6 w-28 lg:w-36 h-28 lg:h-36 rounded-full border-4 border-white shadow-xl flex items-center justify-center"
-               style={{ background: "linear-gradient(135deg,#3a6a1a,#1e5c2e)" }}>
-            <div className="text-center text-white">
-              <div className="font-display text-lg lg:text-xl">NACHOS</div>
-              <div className="text-xs font-semibold opacity-75">Loaded</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function OffersStrip() {
-  const items = [
-    { icon: "🕙", text: "Open Daily 10AM–10PM" },
-    { icon: "🛵", text: "Free Delivery Within 5km" },
-    { icon: "⭐", text: "4.9 Star Rating" },
-    { icon: "📞", text: "Order by Phone or Online" },
-  ];
-  return (
-    <section className="py-3 sm:py-4 overflow-hidden" style={{ background: "#1e5c2e" }}>
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-center flex-wrap gap-4 sm:gap-8 md:gap-16 text-white">
-          {items.map(item => (
-            <div key={item.text} className="flex items-center gap-2 text-xs sm:text-sm font-semibold whitespace-nowrap">
-              <span>{item.icon}</span>{item.text}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function MenuSection() {
   const { cart, addToCart, buyNow } = useCart();
   const [category, setCategory] = useState("All");
@@ -295,83 +216,11 @@ function MenuSection() {
   );
 }
 
-function About() {
-  return (
-    <section id="about" className="py-16 sm:py-24 text-white relative overflow-hidden" style={{ background: "#1e5c2e" }}>
-      <div className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 pointer-events-none"
-           style={{ background: "#fff", transform: "translate(40%,-40%)" }} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 text-xs sm:text-sm font-bold mb-4 sm:mb-6"
-                 style={{ background: "rgba(255,255,255,0.1)", color: "#d4f53c" }}>
-              ⚡ Our Story
-            </div>
-            <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-wider uppercase mb-6 sm:mb-8 leading-none">
-              Born From<br />Bold Flavor.
-            </h2>
-            <div className="space-y-4 sm:space-y-5 text-white/80 font-semibold text-base sm:text-lg leading-relaxed">
-              <p>ShockBites started with one simple idea: food should surprise you. Every bite should spark something — whether it's a laugh, a craving, or just that feeling of "I need another one."</p>
-              <p>We source fresh ingredients daily and craft every menu item to hit differently. No fillers, no shortcuts. Just bold, honest food made for people who know what they want.</p>
-            </div>
-            <p className="font-display text-xl sm:text-2xl tracking-wider uppercase mt-6 sm:mt-8" style={{ color: "#d4f53c" }}>
-              Never settle for ordinary.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {[
-              { label: "Menu Items",       value: "20+" },
-              { label: "Happy Customers",  value: "50K+" },
-              { label: "Years Serving",    value: "5+" },
-              { label: "Avg. Rating",      value: "4.9 ★" },
-            ].map(stat => (
-              <div key={stat.label} className="rounded-2xl p-4 sm:p-6 text-center border border-white/20 hover:bg-white/10 transition-colors"
-                   style={{ background: "rgba(255,255,255,0.08)" }}>
-                <div className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-wider mb-1 sm:mb-2" style={{ color: "#d4f53c" }}>{stat.value}</div>
-                <div className="text-white/70 font-semibold text-xs uppercase tracking-widest">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Contact() {
-  const info = [
-    { icon: "📍", title: "Location", detail: "123 Shock Street, Manila, PH" },
-    { icon: "🕙", title: "Hours",    detail: "Mon–Sun: 10AM – 10PM" },
-    { icon: "📞", title: "Phone",    detail: "+63 912 345 6789" },
-  ];
-  return (
-    <section id="contact" className="py-16 sm:py-24" style={{ background: "#e8f0e1" }}>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-        <h2 className="font-display text-4xl sm:text-5xl md:text-6xl tracking-wider uppercase mb-3 sm:mb-4" style={{ color: "#1e5c2e" }}>Find Us</h2>
-        <p className="text-base sm:text-lg font-semibold mb-8 sm:mb-12" style={{ color: "#5a7a4a" }}>Come in, or order online — we're always ready.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {info.map(item => (
-            <div key={item.title} className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="text-3xl mb-2 sm:mb-3">{item.icon}</div>
-              <div className="font-display text-lg sm:text-xl tracking-wider mb-1" style={{ color: "#1e5c2e" }}>{item.title}</div>
-              <div className="text-xs sm:text-sm font-semibold" style={{ color: "#5a7a4a" }}>{item.detail}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default function MenuPage() {
   return (
     <>
       <Navbar logoSize="h-12 sm:h-14" />
-      <Hero />
-      <OffersStrip />
       <MenuSection />
-      <About />
-      <Contact />
       <Footer variant="menu" />
       <CartDrawer />
       <CheckoutModal />
