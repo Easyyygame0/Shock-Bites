@@ -128,42 +128,7 @@ function Hero() {
   );
 }
 
-function StatsStrip() {
-  const stats = [
-    { value: "20+", label: "Menu Items" },
-    { value: "4.9★", label: "Avg Rating" },
-    { value: "5+", label: "Years Serving" },
-    { value: "50K+", label: "Happy Customers" },
-  ];
-  return (
-    <section className="py-10 sm:py-14" style={{ background: "#eef3e4" }}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              className="rounded-2xl p-5 sm:p-6 text-center border-2"
-              style={{ background: "#fff", borderColor: "#d4f53c" }}
-            >
-              <div
-                className="font-display text-3xl sm:text-4xl tracking-wider mb-1"
-                style={{ color: "#1e5c2e" }}
-              >
-                {s.value}
-              </div>
-              <div
-                className="text-xs sm:text-sm font-bold uppercase tracking-widest"
-                style={{ color: "#5a7a4a" }}
-              >
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+
 
 function Featured() {
   const navigate = useNavigate();
@@ -535,7 +500,6 @@ export default function HomePage() {
     <>
       <Navbar logoSize="h-14 sm:h-16" />
       <Hero />
-      <StatsStrip />
       <Featured />
       <About />
       <Contact />

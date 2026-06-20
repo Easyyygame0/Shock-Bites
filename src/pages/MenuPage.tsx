@@ -35,6 +35,7 @@ function MenuSection() {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("default");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [variantModal, setVariantModal] = useState<Product | null>(null);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [variantIntent, setVariantIntent] = useState<"add" | "buynow">("add");
@@ -73,35 +74,75 @@ function MenuSection() {
           />
 
           {/* Categories + sort row */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">
-            {/* Horizontally scrollable on mobile */}
-            <div className="filter-strip flex-1">
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className="px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all border-2 whitespace-nowrap"
-                  style={category === cat
-                    ? { background: "#1e5c2e", color: "#fff", borderColor: "#1e5c2e" }
-                    : { background: "#fff", color: "#1e5c2e", borderColor: "rgba(30,92,46,0.25)" }
-                  }
-                >
-                  {cat}
-                </button>
-              ))}
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Mobile burger toggle */}
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(open => !open)}
+                className="sm:hidden flex h-12 w-12 items-center justify-center rounded-2xl border-2 bg-white"
+                style={{ borderColor: "rgba(30,92,46,0.25)", color: "#1e5c2e" }}
+                aria-label="Toggle category menu"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </button>
+
+              {/* Horizontally scrollable on mobile */}
+              <div className="filter-strip flex-1 hidden sm:flex">
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategory(cat)}
+                    className="px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all border-2 whitespace-nowrap"
+                    style={category === cat
+                      ? { background: "#1e5c2e", color: "#fff", borderColor: "#1e5c2e" }
+                      : { background: "#fff", color: "#1e5c2e", borderColor: "rgba(30,92,46,0.25)" }
+                    }
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sort */}
+              <select
+                value={sort}
+                onChange={e => setSort(e.target.value)}
+                className="w-full sm:w-auto px-4 py-3 rounded-2xl border-2 font-semibold text-sm bg-white flex-shrink-0"
+                style={{ borderColor: "rgba(30,92,46,0.3)", color: "#1e5c2e" }}
+              >
+                <option value="default">Featured</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="name-asc">Name: A–Z</option>
+              </select>
             </div>
-            {/* Sort */}
-            <select
-              value={sort}
-              onChange={e => setSort(e.target.value)}
-              className="w-full sm:w-auto px-4 py-3 rounded-2xl border-2 font-semibold text-sm bg-white flex-shrink-0"
-              style={{ borderColor: "rgba(30,92,46,0.3)", color: "#1e5c2e" }}
-            >
-              <option value="default">Featured</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="name-asc">Name: A–Z</option>
-            </select>
+
+            {/* Mobile category dropdown */}
+            {mobileFiltersOpen && (
+              <div className="sm:hidden grid grid-cols-2 gap-2 rounded-2xl bg-white p-2 shadow-sm">
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setCategory(cat);
+                      setMobileFiltersOpen(false);
+                    }}
+                    className="px-3 py-2 rounded-xl text-xs font-bold border-2"
+                    style={category === cat
+                      ? { background: "#1e5c2e", color: "#fff", borderColor: "#1e5c2e" }
+                      : { background: "#fff", color: "#1e5c2e", borderColor: "rgba(30,92,46,0.25)" }
+                    }
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
